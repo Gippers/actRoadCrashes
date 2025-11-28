@@ -1,0 +1,111 @@
+A file for some old code that I don't think I need anymore
+
+# Archive
+daily plotting, didn't work very well.
+```{r}
+#| label: fig-tsplot
+#| fig-cap: "Daily Number of Reported ACT Road Crashes 2015 to 2019"
+#| layout-nrow: 2
+#| fig-subcap: 
+#|  - "First Three Weeks of Time Series"
+#|  - "First year of Time Series"
+# Plot the entire time series
+# Create labels for the first day of jan and july
+# TODO work a little more on the formatting here
+plot(ts(ts.crash[1:21]),  ylab = "Number of Crashes")
+lines(lowess(ts.crash[1:21]), col = 'red', lwd = 2)
+legend("topright", legend = c("LOWESS"), 
+       col = "red", lwd = 2)
+
+
+```
+7 difference
+
+```{r}
+#| label: fig-d7plot
+#| figfig-cap: "Change in Daily Number of Reported ACT Road Crashes 2015 to 2019"
+# First difference and make another plot
+d7.crash <- diff(bc.crash, lag = 7)
+
+# Note the first observation disapears after differencing
+diff.dates <- crash$DATE[-c(1:7)]
+dates <- format(diff.dates, "%d-%m") %in% c("01-01", "01-07")
+date.labels <- diff.dates[dates]
+data.axis <- which(dates)
+plot(d7.crash, xaxt = "n", ylab = "Number of Crashes")
+# TODO fix the start date as the second
+axis(1, data.axis, format(date.labels, "%m/%y"), las = 2)
+lines(lowess(d7.crash), col = 'red', lwd = 2)
+```
+364 day difference
+
+```{r}
+#| label: fig-dyearplot
+#| figfig-cap: "364 Day Differenced Change in Daily Number of Reported ACT Road Crashes 2015 to 2019"
+# 364 day difference, 
+dyear.crash <- diff(bc.crash, lag = 364)
+
+# Note the first observation disapears after differencing
+diff.dates <- crash$DATE#[-c(1:364)]
+dates <- format(diff.dates, "%d-%m") %in% c("01-01", "01-07")
+date.labels <- diff.dates[dates]
+data.axis <- which(dates)
+plot(dyear.crash, xaxt = "n", ylab = "Number of Crashes")
+# TODO fix the start date as the second
+axis(1, data.axis,  format(date.labels, "%m/%y"), las = 2) # Note, this automatically shifts index based on differencing
+lines(lowess(dyear.crash), col = 'red', lwd = 2)
+legend("topright", legend = c("LOWESS"), 
+       col = "red", lwd = 2)
+```
+ Old prediction method with differencing
+ 
+ ```{r}
+# Function for truncated prediction
+predict_truncated <- function(fc.model, # The forecasting model
+                  time.model, # The time trend model
+                  train, # The training dataset
+                  test, # the testing dataset
+                  horizon = f.h # The forecastin horizon
+                  )
+{
+    #' The predict_truncated function trained forecasting model and
+    #' predicts the text horizon steps using a 1 step truncated forecasting
+    #' model.
+    #' @return Returns the forecast for the next horizon, converted back to the original scale
+    start.val <- train[nrow(train)]$z
+    # predict the arma part of the model
+    # TODO make sure that fc uses 1 step truncated, it should
+    e <- forecast(fc.model, h = horizon)$mean
+    # Predict z't using the + e zmodel and time series part
+    fc <- predict(z.model, type = 'response', newdata = test) + e
+    # Now undoing the differencing and the transformation
+    z <- diffinv(fc, lag = 1, xi = start.val)[-1] # remove diff first
+    # Undo the boxcox by adding 1 and sqauring
+    y <- (z + 1)**2
+    return(y)
+}
+```
+
+```{r}
+# Note if the time model works, need to use log for time
+time.train <- lm(z ~ day + month + 
+                     ph + school_holiday, 
+                  data = crash.train)
+#summary(time.train)
+
+last.train <-  crash.train[nrow(crash.train)]$NUM_CRASHES
+
+crash.train$ttr <- time.train$residuals
+
+aat.zr <- Arima(crash.train$ttr, c(0, 0, 1), include.mean = F)
+
+# auto.arima model prediction
+crash.test$pred.aat <- (predict(time.train, newdata = crash.test, type = "response") + forecast(aat.zr, h = f.h)$mean + 1)^2
+
+
+# Smoothing
+ets <- Arima(crash.train$z, c(0, 1, 1))
+crash.test$pred.ets <- (forecast(ets, h = f.h)$mean + 1)^2
+
+
+```

@@ -47,3 +47,35 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+###########################
+# Below stops quarto output
+# Quarto rendered output
+*.html
+*.pdf
+*.docx
+*.pptx
+*.epub
+
+# Quarto-generated directories
+_site/
+.quarto/
+.quarto-cache/
+_cache/
+_files/
+
+# R build artifacts
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+*.Rhistory
+
+# Jupyter / Python caches (if used)
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# macOS cruft
+.DS_Store
