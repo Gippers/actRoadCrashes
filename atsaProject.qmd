@@ -412,7 +412,17 @@ if(F)
 colnames(mod_aics) <- 0:7
 mod_aics$rownames <- 0:7
 
-gt(mod_aics, rowname_col = "rownames") 
+gt(mod_aics, rowname_col = "rownames") |>
+    tab_style(
+    style = list(
+      cell_fill(color = "green"),
+      cell_text(weight = "bold")
+    ),
+    locations = cells_body(
+      rows = 2,
+      columns = 1
+    )
+  )
 ```
 
 
