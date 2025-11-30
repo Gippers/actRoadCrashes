@@ -79,3 +79,8 @@ __pycache__/
 
 # macOS cruft
 .DS_Store
+
+# Quarto render artefacts
+*_files/
+*_cache/
+_site/
