@@ -35,6 +35,7 @@ execute:
 editor: 
   markdown: 
     wrap: 72
+engine: knitr  
 ---
 
 ```{r}
@@ -375,23 +376,43 @@ $$ {#eq:M3}
 Overall, the interpretation of this model is the same as the time-trend model but without serial autocorrelation. We estimate that the error of the time-trend model follows a moving average ARMA(0, 1) process, however this is the only additional interpretation we can make.  No linear trend with time exists in the data, and the fluctuations appear to mostly be driven by seasonal trends and public holidays.
 
 
-## AIC Model Selection
-Fit an ARMA model predicting $z'$, using AIC to find the best model.
+## Time Trend with ARMA(1, 0) Residuals (AIC)
+
+In addition to the SEACF, lets also try another order estimation technique for $\nu_t$. Particularly as the SEACF plot was not definite on the best vertex choice. Instead, we will fit all combinations of ARMA(p, q) up to order 7, and find the model with the smallest Alkaline Information Criteria (AIC). 7 is used as the maximum order as strong seasonality at this order was detected and the SEACF indicates the best choice is somewhere in this range. The table of fitted AIC is regulated to Appendix C.2, the smallest AIC was found for the ARMA(1, 0) model with an AIC of 1734.405. This was closely followed by ARMA(0, 1) model with AIC of 1734.747. Therefore, we fit the following AR(1) model to v_t=0.1690(0.03277)v_(t-1)+ε_t, which was significant to at least the 95% confidence level (output table available in appendix). Then the final model is a time-trend model with ARMA(1, 0) residuals:
 ```{r}
-# Fit the model using AIC
+#| label: fig-tt-aic
+#| fig-cap: "Estimated AIC of Time Trend model with different ARMA models for modelling the residuals. Rows contain order of p, columns contain order of q."
+
+
 # Do at least 7 given the observed weekly seasonality
-max.p <- 7
-max.q <- 7
-mod_aics <- matrix(0, max.p + 1, max.q + 1)
-for(p in 0:max.p)
+if(F)
 {
-    for(q in 0:max.q)
-    {
-        aic <- Arima(crash.train$z.r, order = c(p, 0, q), method = "ML", include.mean = F)$aic
-        mod_aics[p + 1, q + 1] <- aic
-    }
+  # Only re run this algorithm if T, in order to save time
+  max.p <- 7
+  max.q <- 7
+  mod_aics <- matrix(0, max.p + 1, max.q + 1)
+  for(p in 0:max.p)
+  {
+      for(q in 0:max.q)
+      {
+          aic <- Arima(crash.train$z.r, order = c(p, 0, q), method = "ML", include.mean = F)$aic
+          mod_aics[p + 1, q + 1] <- aic
+      }
+  }
+  mod_aics #- min(mod_aics)
+  fwrite(mod_aics, "results/tt_aic_table.csv")
+  mod_aics <- as.data.frame(mod_aics)
+} else
+{
+  # Load previously computed, as this algorithm can be a little slow
+  mod_aics <- as.data.frame(fread("results/tt_aic_table.csv"))
 }
-mod_aics #- min(mod_aics)
+
+# turn the matrix into a gt table
+colnames(mod_aics) <- 0:7
+mod_aics$rownames <- 0:7
+
+gt(mod_aics, rowname_col = "rownames") 
 ```
 
 
