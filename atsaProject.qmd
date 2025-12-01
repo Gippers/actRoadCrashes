@@ -599,7 +599,9 @@ tsdisplay(residuals(a.sarima), ci.type = "ma", main = "Residuals of SARIMA(1,0,0
 
 # Model Diagnostics
 
-## SEACF Model Diagnostics
+Perform residual diagnostics to determine if the model from part 3 were adequately fit. Whilst I will consider outliers, no attempt will be made to assess high influence observations as cook’s distance is not valid with dependent error structures.
+
+## Time Trend with ARMA(0, 1) Residuals (SEACF)
 
 ```{r}
 # Diagnostic plots for models
@@ -626,7 +628,19 @@ model_diagnostics <- function(model)
 
 ```
 
+::: callout-note
+
+## Residual Diagnostic Plots for Time Trend Model with ARMA(0, 1) Residuals (optional)
+<details>
+<summary>Click to expand</summary>
+
 ```{r}
+#| label: fig-res-arma01
+#| fig-cap: "Residual Diagnostic Plots for Time Trend Model with ARMA(0, 1) Residuals"
+#| fig-ncol: 2
+#| fig-subcap: 
+#|   - "Residual Plots"
+#|   - "QQ Plot"
 # SEACF ARMA Model
 model_diagnostics(ARMA.SEACF.ML)
 
@@ -635,13 +649,31 @@ res.stand <- rstandard(ARMA.SEACF.ML)
 toutlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 
 # analyse the outliers
-crash.train[DATE %in% toutlier]
+#crash.train[DATE %in% toutlier]
+# TODO put outliers in appendix
 ```
-- Examining the model diagnostics, we find the the residuals do appear scattered around 0 with somewhat consistent variance around 0. Furthermore the variance assumption is met decently until the top top part of the distribution which is a little heavy tailed. Given the amount of data though we shouldn't be too concerned as the CLT will help ensure that a slight variation of this isn't too problematic, and for this analysis we don't use the variance. Finally, the Ljung-Box test fails. This means that there is still some serial autocorrelation in the data that we haven't accounted for. We will continue to use this model instead of iteratively trying to refit it to demonstrate the difference to the time-trend ARMA model selected via the AIC method, which has a different form.
-- There does appear to be one outlier on the day Wednesday 2017-04-26, on this date there were school and public holidays on Monday and Tuesday and Wednesday would have been the first day back at school. This likely caused a higher than expected number of road accidents as the day following a weekend tends to have the highest accident rate. However, given that it looks like a one off, and you cannot remove time series outliers, I will not attempt to control for this point. Note that both time-trend based models have this outlier
 
-## Time Trend model with AIC ARMA Residuals
+</details>
+:::
+
+
+Examining the model diagnostics, we find the residuals do appear scattered around 0 with somewhat consistent variance around 0, which meets the linearity of errors and homoscedasticity assumptions. There does not appear to be any omitted variable bias. Furthermore, the variance assumption is met decently until the top part of the distribution which is a little heavy tailed. Given the amount of data though we shouldn't be too concerned as the CLT will help ensure that a slight variation of this isn't too problematic. Finally, the Ljung-Box test passes as no p-values cross the 0.05 threshold, signalling that there is no evidence of dependence of observations. This model has 7 outliers with absolute standardized residual greater than 3, this is on par given the number of observations we have. The outliers tend to be either school holidays or days in the middle of the week. Overall, we cannot remove these residuals but maybe there is some difference in traffic on  certain school holidays that could be better accounted for.  Overall, there is no evidence to suggest that this model egregiously violates the model diagnostics.
+
+## Time Trend with ARMA(1, 0) Residuals (AIC)
+
+::: callout-note
+## Residual Diagnostic Plots for Time Trend Model with ARMA(1, 0) Residuals (optional)
+<details>
+<summary>Click to expand</summary>
+
 ```{r}
+#| label: fig-res-arma10
+#| fig-cap: "Residual Diagnostic Plots for Time Trend Model with ARMA(1, 0) Residuals"
+#| fig-ncol: 2
+#| fig-subcap: 
+#|   - "Residual Plots"
+#|   - "QQ Plot"
+# SEACF ARMA Model
 # Time Trend ARMA model
 model_diagnostics(ARMA.AIC.ML)
 # Get the outliers
@@ -649,12 +681,15 @@ res.stand <- rstandard(ARMA.AIC.ML)
 toutlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 
 # analyse the outliers
-crash.train[DATE %in% toutlier]
+#crash.train[DATE %in% toutlier]
+# TODO put outliers in appendix
 ```
 
-- The constant variance, linearity of residuals assumptions are met for this model. Similarly to the previous model, the residuals are mostly normal with a slightly heavy right tail. 
-- This time however, changing from ARMA(0, 0, 1) to a ARMA(2, 0, 2) in addition to improving the AIC also changed the residuals to be not correlated over time. Therefore, the residuals of this model is stationary and overall the assumptions of the model do not appear to be violated.
-- It appears that EACF was inccorect, and that the AR(1) was a better fit to the residuals
+</details>
+:::
+
+
+The constant variance and linearity of residuals assumptions are met for this model. There does not appear to be any omitted variable bias. Similarly to the previous model, the residuals are mostly normal with a slightly heavy right tail. This makes the trend in the residuals sense given that that $z_t$ is slightly right skewed. Again the Ljung-Box test passes, so there is no evidence of serial autocorrelation of the errors of the model. There are, similarly to the past time-trend ARMA(0, 1) model 7 outliers, which occur  Tuesday-Friday or on a school holiday. Therefore, the residuals of this model are stationary and overall, the assumptions of the model do not appear to be violated. 
 
 ## SARIMA Model
 ```{R}
