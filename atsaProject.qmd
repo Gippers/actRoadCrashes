@@ -758,10 +758,17 @@ Again, no issues with the constant variance assumption or linearity of assumptio
 
 # Data Prediction
 
-In addition to the four models fitted and diagnosed, I will also include a Naive estimate. This is just the last value from the training time series at time $T$. Ideally, a good model would have a smaller prediction than this naive baseline, it is a good tool for comparison.
-- Note that the time trend models predict from the time trend model plus add the errors
+To assess the accuracy of the fitted models, use the $MSEP^{(T')}$, which is the Mean Square Error of Prediction (MSEP) for the truncated one-step-ahead forecast for time $T+1,T+2, \ldots, T'-1, T'$. The $MSEP^{(T' )}$ is calcuated as:
 
+$$
+MSEP^{(T')}=  \frac{1}{T'} \sum_{j = 1}^{T'} (y_{T + j}  - \widehat{y_{T+j|T}})
+$$
 
+In addition to the four models fitted and diagnosed, I will also include a Naive estimate. This is just the last value from the training time series at time $T$,$y_T.$ Ideally, a good model would have a smaller prediction than this naive baseline. 
+
+```{r}
+# TODO up to here
+```
 
 ```{r}
 ##
