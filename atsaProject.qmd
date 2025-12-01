@@ -294,14 +294,14 @@ First, we will attempt to fit a linear time trend model to the transformed train
 
 $$
 M_2 : z_t = 3.5402 (0.1191)-0.7205 (0.0811)Sat -1.2200 (0.0768) Sun + 0.3285 (0.0692) \text{Thu-Fri} + 0.2291 (0.0732) \text{Tue-Wed}+0.4536 (0.1046) \text{Apr-May} +0.3564 (0.1048) \text{Aug-Oct} +0.1505 (0.1833) Dec+0.1832 (0.1215) Feb+0.4917 (0.1013) Jul+0.3640 (0.1316) Jun+0.3702 (0.1218) Mar + 0.1801 (0.1259) Nov - 1.9650 (0.1148) \text{Public and School Holiday}-1.9895 (0.2405) \text{Public Holiday} -0.5674 (0.0821) \text{School Holiday} +  \nu_t
-$$ {#eq:M2}
+$${#eq:M2}
 
 We observe that Saturday and Sunday see a large negative marginal association with road crashes, whilst Monday has a positive marginal association, whilst holding all other variable constant. The day of the week being Sunday compared to Monday, is associated with a 1.200 decrease in the square root of the number of ACT Road crashes, holding all other variables constant. So it seems that there are less road crashes on the weekend (Saturday has a similar affect). The month of January stands out as having a large negative marginal association with ACT road crashes and school and public holiday have large negative marginal associations, in particular the public holidays have an association that is approximately three times larger than the school holidays. A public holiday compared to a non-public or school holiday day, is associated with a 1.9895 decrease in the square root of the number of  ACT road crashes, holding all other variables constant. Note that $z_t$ is sqrt transformed when interpreting the above coefficients. An analysis of the residuals shows that the variance has stabilised, however there appears to be some serial autocorrelation of the residuals, potentially of the MA(1) order. These plots are available in the appendix. In addition, due to this dependence of errors, sandwich HAC errors were used for the standard estimates, a full regression output table is in Table C. To remove serial autocorrelation, lets use some ARMA models to model the residuals.
 
 ::: callout-note
-## Residual Diagnostics for Time Trend Model (optional)
+## Time Series Display for Time Trend Model (optional)
 <details>
-<summary>Click to expand residual plots</summary>
+<summary>Click to expand time series diagnostic display</summary>
 
 ```{r}
 #| code-fold: true
@@ -371,7 +371,7 @@ z_t= 3.5402 (0.1191)- 0.7205 (0.0811) Sat - 1.2200 (0.0768) Sun + 0.3285
  -1.9650 (0.1148) \text{Public and School Holiday}-1.9895 (0.2405) \text{Public Holiday} \\
  -0.5674 (0.0821) \text{School Holiday} +  0.1672 (0.03226) \epsilon_{t-1} + \epsilon_t
 \end{aligned}
-$$ {#eq:M3}
+$${#eq:M3}
 
 Overall, the interpretation of this model is the same as the time-trend model but without serial autocorrelation. We estimate that the error of the time-trend model follows a moving average ARMA(0, 1) process, however this is the only additional interpretation we can make.  No linear trend with time exists in the data, and the fluctuations appear to mostly be driven by seasonal trends and public holidays.
 
@@ -451,7 +451,7 @@ z_t= 3.5402 (0.1191)- 0.7205 (0.0811) Sat - 1.2200 (0.0768) Sun + 0.3285
  -1.9650 (0.1148) \text{Public and School Holiday}-1.9895 (0.2405) \text{Public Holiday} \\
  -0.5674 (0.0821) \text{School Holiday} +  0.1692 (0.0328) \nu_{t-1} + \epsilon_t
 \end{aligned}
-$$ {#eq:M4}
+$${#eq:M4}
 
 Again, there isn’t any additional interpretation outside of the time-trend model besides saying that the structure of the error of the time-trend model follows an autoregressive AR(1) pattern.
 
@@ -474,9 +474,9 @@ From the plots of $z_t$, we see that the mean appears to be stationary but there
 
 
 ::: callout-note
-## Residual Diagnostics for SARIMA Model Building Process (optional)
+## Time Series Display for SARIMA Model Building Process (optional)
 <details>
-<summary>Click to expand residual plots</summary>
+<summary>Click to expand time series diagnostic display</summary>
 
 ```{r}
 #| code-fold: true
@@ -547,15 +547,19 @@ $$
 z_t = 1.0719 z_{t-1}-0.1356 z_{t-2}+0.9999 z_{t-7}-1.0717 z_{t-8} \\
 +0.1355z_{t-9}+3.5252+ \epsilon_t-0.8023 \epsilon_{t-1}+0.9909 \epsilon_{t-7}-0.7951 \epsilon_{t-8}
 \end{aligned}
-$$ {#eq:M5}
+$${#eq:M5}
 
 All coefficients are significant to at least a 95% confidence level, see appendix for full model output. Interpreting this model, we find that the current value of $z_t$ is positively correlated with the past value and has a much smaller negative correlation with lag 2. Large values of crashes from the previous week have a positive correlation with the current number of ACT road rashes, which signals strong weekly seasonality. The baseline average for $z_t$ is $3.5252$. Any past innovations to the model (i.e. $\epsilon$) at lag 1, smooth out the current forecast and an innovation from the past week increases the current estimate, but the following day this is again smoothed out by the lag 8 shock. So, these lagged innovations tend to smooth out the predictions of $z_t$.
 
+
 ## Seasonal Auto ARIMA Model of $z_t$
 
-Whilst the SARIMA process above found a reasonable model, there may be a better choice using an auto.arima procedure. Therefore, lets run auto.arima on the non-stabilised z_t to see how it performs. Because of apparent strong weekly seasonality, we will let the auto.arima find a model with weekly seasonality. The max p and q and order will be set to 7 and seasonality will be set to true. This selects a SARIMA model of order (1,0,0) (2,0,0)_7, and it is estimated as:
+Whilst the SARIMA process above found a reasonable model, there may be a better choice using an `auto.arima` procedure. Therefore, lets run `auto.arima` on the non-stabilised z_t to see how it performs. Because of apparent strong weekly seasonality, we will let the `auto.arima` find a model with weekly seasonality. The max $p$ and $q$ and order will be set to 7 and seasonality will be set to true. This selects a SARIMA model of order $(1,0,0) (2,0,0)_7$, and it is estimated as:
 
 ```{r}
+#| label: tbl-auto-model
+#| tbl-cap: "Estimate for Seasonal Auto ARIMA Model"
+
 # Fit a SARIMA model
 a.sarima <- auto.arima(ts(crash.train$z, frequency = 7), max.p = 7, max.q = 7, max.order = 7, trace = T, seasonal = T)
 
@@ -564,17 +568,39 @@ se.aa <- sqrt(diag(a.sarima$var.coef))
 pv.aa <- (pnorm(abs(a.sarima$coef / se.aa), lower.tail = F)) * 2
 as.table <- data.frame(estimate = a.sarima$coef, 
                                 se = se.aa, p.values = pv.aa)
-round(as.table, digits = 4)
+
+as.table <- round(as.table, digits = 4)
+as.table$row <- rownames(as.table)                   
+gt(as.table, rowname_col = "row")
+
+```
+
+$$
+z_t=0.2947z_{t-1}+0.2925z_{t-7}+0.2584z_{t-14}+3.5296+ \epsilon_t
+$${#eq:M6}
+
+This is an odd choice by the `auto.arima` function as the residuals of this model (available in the appendix) show evidence of serial autocorrelation. All coefficients are marginally significant to at least a 95% confidence level. This model simply says that the square root of the number of ACT road crashes has a baseline of $3.5396$ and nearly equally related to the past values at lags 1, 7 and 8. Perhaps this simpler model will result in test predictions than the more flexible previously fit SARIMA model.
+
+::: callout-note
+## Time Series Display for Seasonal Auto ARIMA Model Building Process (optional)
+<details>
+<summary>Click to expand time series diagnostic display</summary>
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show residual diagnostics for SARIMA Model Building Process"
 
 tsdisplay(residuals(a.sarima), ci.type = "ma", main = "Residuals of SARIMA(1,0,0)(2, 0, 0)[7]")
-```
-- The Auto.Arima function has selected an SARIMA(1, 0, 0)(2, 0, 0)_7 model as the best fit. 
-todo write out the formula here
-- TODO interpret
 
+```
+
+</details>
+:::
 
 # Model Diagnostics
+
 ## SEACF Model Diagnostics
+
 ```{r}
 # Diagnostic plots for models
 
