@@ -630,13 +630,13 @@ model_diagnostics <- function(model)
 
 ::: callout-note
 
-## Residual Diagnostic Plots for Time Trend Model with ARMA(0, 1) Residuals (optional)
+## Residual Diagnostic Plots for Time Trend Model with ARMA(0, 1) (optional)
 <details>
 <summary>Click to expand</summary>
 
 ```{r}
 #| label: fig-res-arma01
-#| fig-cap: "Residual Diagnostic Plots for Time Trend Model with ARMA(0, 1) Residuals"
+#| fig-cap: "Residual Diagnostic Plots for Time Trend Model with ARMA(0, 1)"
 #| fig-ncol: 2
 #| fig-subcap: 
 #|   - "Residual Plots"
@@ -662,13 +662,13 @@ Examining the model diagnostics, we find the residuals do appear scattered aroun
 ## Time Trend with ARMA(1, 0) Residuals (AIC)
 
 ::: callout-note
-## Residual Diagnostic Plots for Time Trend Model with ARMA(1, 0) Residuals (optional)
+## Residual Diagnostic Plots for Time Trend Model with ARMA(1, 0) (optional)
 <details>
 <summary>Click to expand</summary>
 
 ```{r}
 #| label: fig-res-arma10
-#| fig-cap: "Residual Diagnostic Plots for Time Trend Model with ARMA(1, 0) Residuals"
+#| fig-cap: "Residual Diagnostic Plots for Time Trend Model with ARMA(1, 0)"
 #| fig-ncol: 2
 #| fig-subcap: 
 #|   - "Residual Plots"
@@ -691,8 +691,22 @@ toutlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 
 The constant variance and linearity of residuals assumptions are met for this model. There does not appear to be any omitted variable bias. Similarly to the previous model, the residuals are mostly normal with a slightly heavy right tail. This makes the trend in the residuals sense given that that $z_t$ is slightly right skewed. Again the Ljung-Box test passes, so there is no evidence of serial autocorrelation of the errors of the model. There are, similarly to the past time-trend ARMA(0, 1) model 7 outliers, which occur  Tuesday-Friday or on a school holiday. Therefore, the residuals of this model are stationary and overall, the assumptions of the model do not appear to be violated. 
 
-## SARIMA Model
-```{R}
+## Seasonal ARIMA Model of $z_t$ $\text{SARIMA}(2,0,1) (1,0,1)_7$
+
+
+::: callout-note
+## Residual Diagnostic Plots for Seasonal ARIMA Model $\text{SARIMA}(2,0,1) (1,0,1)_7$ (optional)
+<details>
+<summary>Click to expand</summary>
+
+```{r}
+#| label: fig-res-sarima
+#| fig-cap: "Residual Diagnostic Plots for Seasonal ARIMA Model SARIMA(2,0,1) (1,0,1)[7]"
+#| fig-ncol: 2
+#| fig-subcap: 
+#|   - "Residual Plots"
+#|   - "QQ Plot"
+
 # Auto.arima model
 model_diagnostics(sarima.final)
 
@@ -701,14 +715,30 @@ res.stand <- rstandard(sarima.final)
 toutlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 
 # analyse the outliers
-crash.train[DATE %in% toutlier]
+#crash.train[DATE %in% toutlier]
+# TODO put outliers in appendix
 ```
-- No issue with the constant variance or linearity of residuals
-- Slightly heavy bottom tail, overall residuals are normal
-- No major issues with the autocorrelation via box lejung
 
-## Auto SARIMA Model
+
+</details>
+:::
+
+No issue with the constant variance assumption or linearity assumption. There does not appear to be any omitted variable bias. The QQ-plot shows slightly heavy bottom tail, but overall the residuals are normal. The Box-Ljung test finds no evidence of serial dependence of errors, so there is no evidence that the dependence of errors assumption is violated. Note, whilst we cannot remove outliers there are 9 outliers with a absolute standardized residual greater than 3. All but one of these outliers occur on a public holiday, most occur during a midweek public holiday. The non-public holiday outlier occurs on Wednesday 2017-04-26, on this date there were school and public holidays on Monday and Tuesday and Wednesday would have been the first day back at school. This likely caused a higher-than-expected number of road accidents as the day following a weekend tends to have the highest accident rate. However, given that it looks like a one off, and you cannot remove time series outliers, I will not attempt to control for this point. This indicates that the SARIMA model is failing to accurately predict the surge in crashes on a public holiday, which the time-trend models are capable of predicting. This highlights one of the downsides of the SARIMA approach, we cannot account for these intermittent events. Overall, none of the model assumptions are violated other than perhaps a slight violation of omitted variable bias. Seasonal Auto ARIMA Model of $z_t$ $\text{SARIMA}(1,0,0) (2,0,0)_7$.
+
+## Auto SARIMA model $\text{SARIMA}(1,0,0)(2,0,0)_7$
+
+::: callout-note
+## Residual Diagnostic Plots for Seasonal ARIMA Model $\text{SARIMA}(1,0,0)(2,0,0)_7$ (optional)
+<details>
+<summary>Click to expand</summary>
+
 ```{r}
+#| label: fig-res-auto-sarima
+#| fig-cap: "Residual Diagnostic Plots for Seasonal ARIMA Model SARIMA(1,0,0)(2,0,0)[7]"
+#| fig-ncol: 2
+#| fig-subcap: 
+#|   - "Residual Plots"
+#|   - "QQ Plot"
 # Auto.arima sarima model
 model_diagnostics(a.sarima)
 
@@ -717,17 +747,17 @@ res.stand <- rstandard(a.sarima)
 toutlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 
 # analyse the outliers
-crash.train[DATE %in% toutlier]
+#crash.train[DATE %in% toutlier]
+# TODO put outliers in appendix
 ```
-
-- No issue with the constant variance or linearity of residuals
-- Residuals look very normal, some tiny amount of light tails but this is neglible
-- Fails the serial autocorrelation test. Not accounting for the seasonality has left this model with serial autocorrelation at lag 7. 
-A naive approach with auto.arima isn't the way to go.
+</details>
+:::
 
 
+Again, no issues with the constant variance assumption or linearity of assumption, however the residuals do not appear to be random scatter and hint at some pattern. The residuals look very normal, some tiny amount of light tails at the bottom of the distribution but overall the residuals are sufficiently normal. However, this fails the Box-Ljung test, indicating serial autocorrelation. The ACF plot shows persistent autocorrelation with lags 5, 10, 15 and so on, which does not decay to 0. Therefore, the auto.arima function selected a model that does not adequately meet the independence of observations assumption. This is a warning that auto.arima on its own is not sufficient to fit models. In addition, there are 5 outliers (absolute standardized residual greater than 3) which include the date 2017-04-26 (discussed previously) and 4 public holidays that occur on a Friday. Again, indicating that the SARIMA model fails to adequately fit some of the public holidays. 
 
 # Data Prediction
+
 In addition to the four models fitted and diagnosed, I will also include a Naive estimate. This is just the last value from the training time series at time $T$. Ideally, a good model would have a smaller prediction than this naive baseline, it is a good tool for comparison.
 - Note that the time trend models predict from the time trend model plus add the errors
 
