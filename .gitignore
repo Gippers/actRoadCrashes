@@ -90,3 +90,8 @@ _site/
 .positron/
 positron/
 /.quarto/
+
+# Quarto caches and freeze output
+_freeze/
+*_cache/
+*_files/
