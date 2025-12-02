@@ -756,7 +756,7 @@ toutlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 
 Again, no issues with the constant variance assumption or linearity of assumption, however the residuals do not appear to be random scatter and hint at some pattern. The residuals look very normal, some tiny amount of light tails at the bottom of the distribution but overall the residuals are sufficiently normal. However, this fails the Box-Ljung test, indicating serial autocorrelation. The ACF plot shows persistent autocorrelation with lags 5, 10, 15 and so on, which does not decay to 0. Therefore, the auto.arima function selected a model that does not adequately meet the independence of observations assumption. This is a warning that auto.arima on its own is not sufficient to fit models. In addition, there are 5 outliers (absolute standardized residual greater than 3) which include the date 2017-04-26 (discussed previously) and 4 public holidays that occur on a Friday. Again, indicating that the SARIMA model fails to adequately fit some of the public holidays. 
 
-# Data Prediction
+# Data Prediction for Training Test Split
 
 To assess the accuracy of the fitted models, use the $MSEP^{(T')}$, which is the Mean Square Error of Prediction (MSEP) for the truncated one-step-ahead forecast for time $T+1,T+2, \ldots, T'-1, T'$. The $MSEP^{(T' )}$ is calcuated as:
 
@@ -765,10 +765,6 @@ MSEP^{(T')}=  \frac{1}{T'} \sum_{j = 1}^{T'} (y_{T + j}  - \widehat{y_{T+j|T}})
 $$
 
 In addition to the four models fitted and diagnosed, I will also include a Naive estimate. This is just the last value from the training time series at time $T$,$y_T.$ Ideally, a good model would have a smaller prediction than this naive baseline. 
-
-```{r}
-# TODO up to here
-```
 
 ```{r}
 ##
@@ -805,37 +801,40 @@ MSEP <- function(actual, pred)
 ```
 
 ```{r}
+#| label: tbl-pred
+#| tbl-cap: "Mean Squared Error of Prediction for all models trained on 1, ..., T predicting T + 1 to T'"
+#| 
+
+
 # Get a number of the MSEP's
-# TODO turn this into a table
-# naive
-round(MSEP(crash.test$NUM_CRASHES, crash.test$naive), digits = 4)
+pred_cols <- c("naive", "pred.seacf", "pred.aic", "pred.sar", "pred.asar")
 
-# SEACF
-round(MSEP(crash.test$NUM_CRASHES, crash.test$pred.seacf), digits = 4)
+msep_results <- sapply(pred_cols, function(col)
+  round(MSEP(crash.test$NUM_CRASHES, crash.test[[col]]), 4)
+)
 
-# AIC
-round(MSEP(crash.test$NUM_CRASHES, crash.test$pred.aic), digits = 4)
+msep_results <- as.data.table(as.list(msep_results))
 
+colnames(msep_results) <- c("naive", "Time-Trend ARMA(0, 1)", "Time-Trend ARMA(1, 0)", "SARIMA(2, 0, 1)(1, 0, 1)[7]", "Auto SARIMA(1, 0, 0)(2, 0, 0)[7]")
 
-# No time series
+msep_results[, row :=  "MSEP^(T')"]
 
-# Sarima
-round(MSEP(crash.test$NUM_CRASHES, crash.test$pred.sar), digits = 4)
+gt(msep_results, rowname_col = "row")
 
-
-# auto SARIMA
-round(MSEP(crash.test$NUM_CRASHES, crash.test$pred.asar), digits = 4)
-# 
 ```
-Which is the best model by MSPE?
-- It is the time trend model fit using AIC
+ 
+In terms of $MSEP^{(T^')}$, the most accurate model is the Time-Trend ARMA(1,0) model (fit using AIC method) that marginally beats out the other Time-Trend. In truth, the accuracy between the two time trend models is nearly indistinguishable, which makes sense as the ARMA errors are only different for the first few time points then decay quickly to the mean. Notably, the Time-Trend model performs more than twice as good compared to a Naïve predictor.
 
 ```{r}
+#| label: fig-pred
+#| fig-cap: "Model Test Prediction vs Actual"
+
+# TODO use an interactive graph
 # TODO fix the green line
 # Compare some of the forecasts via plots
 par(mar = c(5, 4, 4, 8), xpd = TRUE)  # extra space on right
 plot(ts(crash.test$NUM_CRASHES,start = 912 ), type = "l", lwd = 2, ylim = range(c(crash.test$NUM_CRASHES, crash.test$pred.seacf)), 
-     main = "Model Test Prediction vs Actual and Naive Forecasts", ylab = "ACT Daily Road Crashes", bty = "l")
+     main = "", ylab = "ACT Daily Road Crashes", bty = "l")
 lines(crash.test$pred.seacf, col = "lightblue", lwd = 2, lty = 2) # SEACF Line
 lines(crash.test$pred.aic, col = "blue", lwd = 2, lty = 2) # SEACF Line # ETS line 
 lines(crash.test$pred.sar, col = "orange", lwd = 2, lty = 2) # aa
@@ -852,9 +851,11 @@ legend("topright", inset = c(-0.35, 0),
 # TODO fix the legend and graph lavels
 
 ```
-- This graph is super convulated given our time scale, lets just look at the first month
+
 
 ```{r}
+#| label: fig-pred-4weeks
+#| fig-cap: "Model Test Prediction vs Actual for First 4 Weeks"
 # Plot for the first month
 par(mar = c(5, 4, 4, 8), xpd = TRUE)  # extra space on right
 plot(crash.test[1:28]$NUM_CRASHES, type = "l", lwd = 2, ylim = range(c(crash.test$NUM_CRASHES, crash.test$pred.seacf)), 
@@ -872,25 +873,12 @@ legend("topright", inset = c(-0.2, 0),
        lty = c(1, 2, 2, 2, 2, 2),
        bty = "n")
 ```
-Which give the best prediction from the figure?
-- Looks like the either time time trend SEACF of AIC model give the best fit. The AIC has a slightly better fit only in the first time points. And the two time trend models most accurately reflect the peaks and troughs
-- This is the same as the MSPE. Because what does MSPE measure? Average squared distance to true plot. Only wouldn't be the same if there were outlying points skewing
 
-Do the conclusiongs 
+The required time series graph is a little difficult to interpret given the large number of data points so, an additional graph only looking at the first 28 days was included. The graph shows that neither of the time-trend models (aka SEACF or AIC) have an indistinguishable fit. The AIC and SEACF time-trend models appear to most accurately follow the peaks and troughs of the actual trend however, the SARIMA model also appears to do a decent job. The Auto Sarima model is too smoothed and appears to underfit the peaks and troughs of the data. This is the same conclusion as the $MSEP^{(T')}$ which makes sense as the accuracy measure is the mean squared distance to the true point. $MSEP^{(T')}$ can be inaccurate however when there are lots of large outliers, so the $MSEP^{(T')}$. In our case however, we didn’t see more than 10 outliers for either trend, so it is understandable that $MSEP^{(T')}$ matches the findings of the graph.
 
-Why do some perform well and others not so?
-- There are patterns in the data that the SARIMA models can't pick up. Due to changes in calendar etc. the public holidays can't be detected as well. 
-- It also appears that the factor in daily time series fit the model better than the structure of the 
-- In some ways the performance of the sarima data is impressive, given that I had to find the additional public holiday data.
-- Note as well, the SARIMA model only has the daily seasonality, it doesn't consider the months seasonality.
-- The difficulty of calendars makes for daily data, monthly seasonality easier with the time trend model
-- In both cases, the model with worse fit via diagnostics had worse prediction. This is likely as there was something in our model that the diagnostics is telling us it is missing
-- However, comparing between the best time-trend and SARIMA model, the diagnostics can't tell us which of these is better. And the failing time trend model was better than the passing Sarim model
-Why do the model diagnostic test fails
-- It looks like there was some autoregressive component in the time trend model that the eacf didn't pick up
-- Looks like the auto.sarima was missing some ma component that my visual method picked up
+As discussed in the model fitting section there are patterns in the data that the SARIMA models can't pick up. For example, the public holidays are more difficult for the SARIMA model to fit due to changes in calendar and annual changes in public holiday days. In addition, the seasonality being modelled as factors likely provides greater flexibility to the time-trend model, which have19 parameters compared to the largest SARIMA model which has only 9 parameters. Given the large amount of training data this flexibility has likely allowed the bias of the model to be reduced significantly. The performance of the SARIMA models however is impressive given the lack of additional information about public and school holidays. In addition,  the SARIMA model only has the weekly seasonality, it doesn't consider the monthly seasonality the time-trend models do.
 
-
+Comparing the models, the auto SARIMA had the worst regression diagnostics and by far had the worst accuracy. This is likely as there was something in our model that the diagnostics is telling us it is missing. However, for the models that passed the diagnostics there is no indication which of these three models would fit better. Therefore, the diagnostics were useful in indicating that the model that failed the diagnostics was a poor predictor but, it was not useful in distinguishing the predictive ability of those that passed.
 
 
 
