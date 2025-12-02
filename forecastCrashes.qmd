@@ -2,40 +2,6 @@
 title: "Temporal Analysis of Road Crashes in the Australian Capital Territory"
 author: "Thomas Martin"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-format:
-  html:
-      #- footskip=33pt
-    toc: false
-    fig-cap-location: top # Make sure the fig is at top, not working?
-    number-sections: true
-    number-depth: 2
-    #number-offset: 2
-    colorlinks: true
-    html-table-processing: none
-    fontsize: "12"
-    mainfont: "Times New Roman"
-    linestretch: 1
-    fig-pos: "H"
-    geometry:
-      - inner=1cm
-      - outer=1cm
-      - top=0.5cm
-      - bottom= 3cm
-      - headsep=10pt
-      - headheight=11pt
-      - ignorehead
-      - ignorefoot
-      - heightrounded
-execute:
-  echo: false
-  warning: false
-#header-includes:
-  #\usepackage{float}
-  #\floatplacement{table}{H}
-editor: 
-  markdown: 
-    wrap: 72
-engine: knitr  
 ---
 
 ```{r}

@@ -20,6 +20,11 @@ website:
 
 format:
   html:
+    fig-cap-location: top # Make sure the fig is at top, not working?
+    number-sections: true
+    number-depth: 2
+    colorlinks: true
+    fig-pos: "H"
     theme:
       light: flatly
       dark: darkly
@@ -29,6 +34,11 @@ format:
     toc-depth: 2
     #code-fold: true
     #code-tools: true
+
+editor: 
+  markdown: 
+    wrap: 72
+engine: knitr  
 
 execute:
   freeze: auto
