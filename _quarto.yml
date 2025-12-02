@@ -1,12 +1,14 @@
 project:
   type: website
+  render:
+  - forecastCrashes.qmd
 
 website:
   title: "Temporal Analysis of Road Crashes in the Australian Capital Territory"
   description: "Forecasting Road Crashes in the ACT using Time Trend and ARIMA models"
   navbar:
     left:
-      - href: atsaProject.qmd
+      - href: forecastCrashes.qmd
         text: Home
     right:
     - icon: github
