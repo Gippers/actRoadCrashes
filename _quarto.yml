@@ -1,0 +1,35 @@
+project:
+  type: website
+
+website:
+  title: "Temporal Analysis of Road Crashes in the Australian Capital Territory"
+  description: "Forecasting Road Crashes in the ACT using Time Trend and ARIMA models"
+  navbar:
+    left:
+      - href: atsaProject.qmd
+        text: Home
+    right:
+    - icon: github
+      aria-label: GitHub
+      href: https://github.com/Gippers
+    - icon: globe
+      aria-label: Personal Website
+      href: https://www.thomasmartin.id.au
+
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+    toggle: true
+    #css: styles.css
+    toc: true
+    toc-depth: 2
+    #code-fold: true
+    #code-tools: true
+
+execute:
+  freeze: auto
+  echo: false
+  warning: false
+  message: false

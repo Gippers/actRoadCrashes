@@ -89,3 +89,4 @@ _site/
 *.vdoc*
 .positron/
 positron/
+/.quarto/

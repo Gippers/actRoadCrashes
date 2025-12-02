@@ -1,5 +1,5 @@
 ---
-title: "Temporla Analysis of Road Crashes in the Australian Capital Territory"
+title: "Temporal Analysis of Road Crashes in the Australian Capital Territory"
 author: "Thomas Martin"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 format:
@@ -955,10 +955,10 @@ rolling_predict <- function(pdq, # The non-seasonal order
 b.2 <- floor(0.74 * t) # half of the training dataset
 b.1 <- floor(0.37 * t) # A quarter of the training dataset
 
-# TODO b.q won't work :(
+
 ```
 
-The 
+ 
 ```{r}
 # Get the predictions for the different datasets
 
@@ -999,7 +999,6 @@ if(F)
 ```{r}
 #| label: tbl-rolling
 #| tbl-cap: "MSEP for the Rolling Winodw Prediction Models"
-#| tbl-subcap: "*The only was to get the SARIMA model to execute was the change the order from SARIMA(2,0,1) (1,0,1)_7 to SARIMA(2,0,1) (0,0,1)_7 as the more complex SARIMA model has non-finite finite-difference value and would not converge to a solution regardless of method used to fit it. The simpler model was fit for comparison purposes however, in some sense the fit was also null as the model failed to converge. Both options will be discussed."
 
 # Get the windowed forecasts:
 pred_cols <- c("roll.naive", "roll.1.seacf", "roll.2.seacf", "roll.1.aic", "roll.2.aic",
@@ -1034,6 +1033,8 @@ colnames(roll_results) <- c("naive", "Time-Trend ARMA(0, 1)", "Time-Trend ARMA(1
 gt(roll_results, rowname_col = "roll")
 
 ```
+
+*&#42The only was to get the SARIMA model to execute was the change the order from SARIMA(2,0,1) (1,0,1)_7 to SARIMA(2,0,1) (0,0,1)_7 as the more complex SARIMA model has non-finite finite-difference value and would not converge to a solution regardless of method used to fit it. The simpler model was fit for comparison purposes however, in some sense the fit was also null as the model failed to converge. Both options will be discussed.*
 
 The $MSPE_1$ table above shows that the Time-Trend models once again perform by far the best. The difference in performance between the time-trend models again is nearly negligible, which likely indicates that either choice is appropriate, and any difference is down to chance. This time, the auto SARIMA model outperformed the SARIMA model (which also failed to converge with the original order and was altered so it would). It appears that the reduction in training data made the more complex SARIMA model unable to fit and less efficient when it was. 
 
