@@ -294,7 +294,7 @@ First, we will attempt to fit a linear time trend model to the transformed train
 
 $$
 M_2 : z_t = 3.5402 (0.1191)-0.7205 (0.0811)Sat -1.2200 (0.0768) Sun + 0.3285 (0.0692) \text{Thu-Fri} + 0.2291 (0.0732) \text{Tue-Wed}+0.4536 (0.1046) \text{Apr-May} +0.3564 (0.1048) \text{Aug-Oct} +0.1505 (0.1833) Dec+0.1832 (0.1215) Feb+0.4917 (0.1013) Jul+0.3640 (0.1316) Jun+0.3702 (0.1218) Mar + 0.1801 (0.1259) Nov - 1.9650 (0.1148) \text{Public and School Holiday}-1.9895 (0.2405) \text{Public Holiday} -0.5674 (0.0821) \text{School Holiday} +  \nu_t
-$${#eq:M2}
+$${#eq-M2}
 
 We observe that Saturday and Sunday see a large negative marginal association with road crashes, whilst Monday has a positive marginal association, whilst holding all other variable constant. The day of the week being Sunday compared to Monday, is associated with a 1.200 decrease in the square root of the number of ACT Road crashes, holding all other variables constant. So it seems that there are less road crashes on the weekend (Saturday has a similar affect). The month of January stands out as having a large negative marginal association with ACT road crashes and school and public holiday have large negative marginal associations, in particular the public holidays have an association that is approximately three times larger than the school holidays. A public holiday compared to a non-public or school holiday day, is associated with a 1.9895 decrease in the square root of the number of  ACT road crashes, holding all other variables constant. Note that $z_t$ is sqrt transformed when interpreting the above coefficients. An analysis of the residuals shows that the variance has stabilised, however there appears to be some serial autocorrelation of the residuals, potentially of the MA(1) order. These plots are available in the appendix. In addition, due to this dependence of errors, sandwich HAC errors were used for the standard estimates, a full regression output table is in Table C. To remove serial autocorrelation, lets use some ARMA models to model the residuals.
 
@@ -371,7 +371,7 @@ z_t= 3.5402 (0.1191)- 0.7205 (0.0811) Sat - 1.2200 (0.0768) Sun + 0.3285
  -1.9650 (0.1148) \text{Public and School Holiday}-1.9895 (0.2405) \text{Public Holiday} \\
  -0.5674 (0.0821) \text{School Holiday} +  0.1672 (0.03226) \epsilon_{t-1} + \epsilon_t
 \end{aligned}
-$${#eq:M3}
+$${#eq-M3}
 
 Overall, the interpretation of this model is the same as the time-trend model but without serial autocorrelation. We estimate that the error of the time-trend model follows a moving average ARMA(0, 1) process, however this is the only additional interpretation we can make.  No linear trend with time exists in the data, and the fluctuations appear to mostly be driven by seasonal trends and public holidays.
 
@@ -451,7 +451,7 @@ z_t= 3.5402 (0.1191)- 0.7205 (0.0811) Sat - 1.2200 (0.0768) Sun + 0.3285
  -1.9650 (0.1148) \text{Public and School Holiday}-1.9895 (0.2405) \text{Public Holiday} \\
  -0.5674 (0.0821) \text{School Holiday} +  0.1692 (0.0328) \nu_{t-1} + \epsilon_t
 \end{aligned}
-$${#eq:M4}
+$${#eq-M4}
 
 Again, there isn’t any additional interpretation outside of the time-trend model besides saying that the structure of the error of the time-trend model follows an autoregressive AR(1) pattern.
 
@@ -547,7 +547,7 @@ $$
 z_t = 1.0719 z_{t-1}-0.1356 z_{t-2}+0.9999 z_{t-7}-1.0717 z_{t-8} \\
 +0.1355z_{t-9}+3.5252+ \epsilon_t-0.8023 \epsilon_{t-1}+0.9909 \epsilon_{t-7}-0.7951 \epsilon_{t-8}
 \end{aligned}
-$${#eq:M5}
+$${#eq-M5}
 
 All coefficients are significant to at least a 95% confidence level, see appendix for full model output. Interpreting this model, we find that the current value of $z_t$ is positively correlated with the past value and has a much smaller negative correlation with lag 2. Large values of crashes from the previous week have a positive correlation with the current number of ACT road rashes, which signals strong weekly seasonality. The baseline average for $z_t$ is $3.5252$. Any past innovations to the model (i.e. $\epsilon$) at lag 1, smooth out the current forecast and an innovation from the past week increases the current estimate, but the following day this is again smoothed out by the lag 8 shock. So, these lagged innovations tend to smooth out the predictions of $z_t$.
 
@@ -577,7 +577,7 @@ gt(as.table, rowname_col = "row")
 
 $$
 z_t=0.2947z_{t-1}+0.2925z_{t-7}+0.2584z_{t-14}+3.5296+ \epsilon_t
-$${#eq:M6}
+$$ {#eq-M6}
 
 This is an odd choice by the `auto.arima` function as the residuals of this model (available in the appendix) show evidence of serial autocorrelation. All coefficients are marginally significant to at least a 95% confidence level. This model simply says that the square root of the number of ACT road crashes has a baseline of $3.5396$ and nearly equally related to the past values at lags 1, 7 and 8. Perhaps this simpler model will result in test predictions than the more flexible previously fit SARIMA model.
 
@@ -883,9 +883,18 @@ Comparing the models, the auto SARIMA had the worst regression diagnostics and b
 
 
 # Rolling Window Prediction
-- Note that the rolling window still predicts the first point as $y_{T+1}$, so not predicint on the training dataset.
-- Seasaonlity is selected on the training set, but estimates come from the window (TODO check this is correct)
-- Note because of issues with the number of observations required, I will use floor (0.37) and floor 0.74. This gives us two more evenly spaced samples and lets the seasonality work. 0.37 is the smallest amount of data I can use. Have to use this for all to make them comparable. 0.74 is then used instead of 0.5 to give us a second b that is twice the size as the smallest (like in the question), to hopefully provide a better comparison, as I think the intention was to understand how a larger or smaller window size changed performance
+
+The rolling window procedure estimates the one-step-ahead forecast for each point in the test dataset using the orders and parameters selected from the test dataset. Accuracy will then be measure as 
+
+$$
+MSEP_1= \frac{1}{T'} \sum_{t = T}^{T+T'-1} (y_{t + 1}- \widehat{y_{t+1|S_t}}) 
+$$ {#eq-msep-roll}
+
+However, the coefficient estimates in the linear regression, ARMA, and SARIMA models are computed using the window of observations proceeding the observation being predicting (including test data that proceeds the time being predicted). A slight alteration was made to my window sizes as the time-trend models need approximately 365 days of data to fit the monthly seasonality. As a result, I will use floor or $0.37$, $b_{0.37} = 337$ and floor of $0.74$, $b_{0.64} = 674$. This gives us two more evenly spaced samples for comparison and enough data for the model to be fit. The Naive estimator for the rolling window predictor is previous observations, this is used for comparison purposes.
+
+```{r}
+# TODO a visualisation here of the rolling window prediction
+```
 
 ```{r}
 # Predict the rolling window for the time trend model
@@ -952,25 +961,38 @@ b.1 <- floor(0.37 * t) # A quarter of the training dataset
 The 
 ```{r}
 # Get the predictions for the different datasets
-# SEACF Prediction
-crash.test$roll.2.seacf <- rolling_predict(c(0, 0, 1), type = "trend", b = b.2)
-crash.test$roll.1.seacf <- rolling_predict(c(0, 0, 1), type = "trend", b = b.1)
 
-# AIC ARMA model predictions
-crash.test$roll.2.aic <- rolling_predict(c(1, 0, 0), type = "trend", b = b.2)
-crash.test$roll.1.aic <- rolling_predict(c(1, 0, 0), type = "trend", b = b.1)
+if(F)
+{
+  # Running this block rebuilds the rolling window prediction, which takes a few mins to build
+  # SEACF Prediction
+  crash.test$roll.2.seacf <- rolling_predict(c(0, 0, 1), type = "trend", b = b.2)
+  crash.test$roll.1.seacf <- rolling_predict(c(0, 0, 1), type = "trend", b = b.1)
 
-# SARIMA model on the transformed crashes
-crash.test$roll.2.sar <- rolling_predict(c(2, 0, 1), PDQ = c(0, 0, 1), type = "arima", b = b.2) # note reduced P to let it converge
-crash.test$roll.1.sar <- rolling_predict(c(2, 0, 1), PDQ = c(0, 0, 1), type = "arima", b = b.1) # note reduced P to let it converge
+  # AIC ARMA model predictions
+  crash.test$roll.2.aic <- rolling_predict(c(1, 0, 0), type = "trend", b = b.2)
+  crash.test$roll.1.aic <- rolling_predict(c(1, 0, 0), type = "trend", b = b.1)
 
-# Auto.arima seasonal model on the transformed crashes
-crash.test$roll.2.asar <- rolling_predict(c(1, 0, 0), PDQ = c(2, 0, 0), type = "arima", b = b.2)
-crash.test$roll.1.asar <- rolling_predict(c(1, 0, 0), PDQ = c(2, 0, 0), type = "arima", b = b.1)
+  # SARIMA model on the transformed crashes
+  crash.test$roll.2.sar <- rolling_predict(c(2, 0, 1), PDQ = c(0, 0, 1), type = "arima", b = b.2) # note reduced P to let it converge
+  crash.test$roll.1.sar <- rolling_predict(c(2, 0, 1), PDQ = c(0, 0, 1), type = "arima", b = b.1) # note reduced P to let it converge
+
+  # Auto.arima seasonal model on the transformed crashes
+  crash.test$roll.2.asar <- rolling_predict(c(1, 0, 0), PDQ = c(2, 0, 0), type = "arima", b = b.2)
+  crash.test$roll.1.asar <- rolling_predict(c(1, 0, 0), PDQ = c(2, 0, 0), type = "arima", b = b.1)
 
 
-# Test naive - last value
-crash.test[, roll.naive := shift(NUM_CRASHES, n = 1, type = "lag", fill = crash.train[nrow(crash.train)]$NUM_CRASHES)]
+  # Test naive - last value
+  crash.test[, roll.naive := shift(NUM_CRASHES, n = 1, type = "lag", fill = crash.train[nrow(crash.train)]$NUM_CRASHES)]
+
+  # Save crash.test
+  fwrite(crash.test, "results/roll_predict.csv")
+} else
+{
+  # Otherwise by default load previously computed rollowing predictions
+  crash.test <- fread("results/roll_predict.csv")
+}
+
 ```
 
 
