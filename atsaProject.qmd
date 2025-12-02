@@ -997,30 +997,41 @@ if(F)
 
 
 ```{r}
+#| label: tbl-rolling
+#| tbl-cap: "MSEP for the Rolling Winodw Prediction Models"
+#| tbl-subcap: "*The only was to get the SARIMA model to execute was the change the order from SARIMA(2,0,1) (1,0,1)_7 to SARIMA(2,0,1) (0,0,1)_7 as the more complex SARIMA model has non-finite finite-difference value and would not converge to a solution regardless of method used to fit it. The simpler model was fit for comparison purposes however, in some sense the fit was also null as the model failed to converge. Both options will be discussed."
+
 # Get the windowed forecasts:
+pred_cols <- c("roll.naive", "roll.1.seacf", "roll.2.seacf", "roll.1.aic", "roll.2.aic",
+             "roll.1.sar", "roll.2.sar", "roll.1.asar", "roll.2.asar")
 
-# Naive: Note here naive is the previous value
-MSEP(crash.test$NUM_CRASHES, crash.test$roll.naive)
+roll_results <- sapply(pred_cols, function(col)
+  round(MSEP(crash.test$NUM_CRASHES, crash.test[[col]]), 4)
+)
 
-# SEACF
-MSEP(crash.test$NUM_CRASHES, crash.test$roll.1.seacf)
-MSEP(crash.test$NUM_CRASHES, crash.test$roll.2.seacf)
+roll_results <- as.data.table(as.list(roll_results))
+roll_results[, roll.2.naive := roll.naive]
+setnames(roll_results, "roll.naive", "roll.1.naive")
 
-# AIC
-MSEP(crash.test$NUM_CRASHES, crash.test$roll.1.aic)
-MSEP(crash.test$NUM_CRASHES, crash.test$roll.2.aic)
+# Turn into two rows based on size of window
+roll_results <- melt(roll_results, measure.vars = patterns("^roll"), 
+  variable.name = "var")
+roll_results[, c("dummy", "roll", "model") := tstrsplit(as.character(var), "\\.")]
+roll_results <- dcast(roll_results, roll ~ model, value.var = "value")
 
+setcolorder(roll_results, c(4, 6, 2, 5, 3, 1))
 
-# No time series
+# Add asterix to the sarima model results
+roll_results[, sar := paste0(as.character(sar), "*")]
 
-# Sarima
-MSEP(crash.test$NUM_CRASHES, crash.test$roll.1.sar)
-MSEP(crash.test$NUM_CRASHES, crash.test$roll.2.sar)
+roll_results[, roll :=  c("MSPE_1  with b_0.37=337", "MSPE_1  with b_0.64=674")]
 
-# auto SARIMA
-MSEP(crash.test$NUM_CRASHES, crash.test$roll.1.asar)
-MSEP(crash.test$NUM_CRASHES, crash.test$roll.2.asar)
-# 
+# Combine with old data
+roll_results <- rbind(msep_results, roll_results, use.names = F)
+
+colnames(roll_results) <- c("naive", "Time-Trend ARMA(0, 1)", "Time-Trend ARMA(1, 0)", "SARIMA(2, 0, 1)(1, 0, 1)[7]*", "Auto SARIMA(1, 0, 0)(2, 0, 0)[7]", "roll")
+
+gt(roll_results, rowname_col = "roll")
 
 ```
 
