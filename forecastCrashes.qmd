@@ -21,7 +21,7 @@ library(gt)
 
 # Introduction
 
-Every day in the Australian Capital Territory (ACT), it is estimated that there are nearly 1 million car trips [2]. Unfortunately, a small proportion of those daily car trips end in accidents. This report will apply various time series modelling approaches to model the number of daily road crashes in the ACT from the 1 January 2015 to 31 December 2019. The aim of the report is to determine the best estimation technique to produce the most accurate prediction of ACT daily car crashes. The resulting model can be applied to predict the trend in future car crashes in the ACT as well as understand patterns in the prevalence of road accidents in the ACT.
+Every day in the Australian Capital Territory (ACT), it is estimated that there are nearly 1 million car trips . Unfortunately, a small proportion of those daily car trips end in accidents. This report will apply various time series modelling approaches to model the number of daily road crashes in the ACT from the 1 January 2015 to 31 December 2019. The aim of the report is to determine the best estimation technique to produce the most accurate prediction of ACT daily car crashes. The resulting model can be applied to predict the trend in future car crashes in the ACT as well as understand patterns in the prevalence of road accidents in the ACT.
 The data used for this report was collected by the AFP Crash Report Form, and collected from the ACT Open Data Portal as at 30 April 2025 [1]. All crashes in the ACT must be reported to police within 24 hours, unless attended by police [3]. It is worth noting then, that this may under report serious road accidents, which would likely be attended by police. Therefore, we are likely measuring moderate and minor road accidents. This includes all crashes by users, drivers, cyclists, pedestrians and motorcyclists on roads, paths and other road related areas involving pedestrians or cyclists. All crash incidents are aggregated by day to transform the dataset into a daily time series. Therefore, the time series measures daily road crashes in the ACT reported through the AFP crash report system, hereafter referred to as ACT road crashes. This report limited the timeline of the data from 2015 to 2019 to model the data without the presence of the COVID lockdowns skewing the result. 
 
 ```{r}
@@ -1040,12 +1040,12 @@ This report fit four time series model to the ACT crash data from 1 January 2015
 
 # Bibliography
 
-[1] https://www.data.act.gov.au/Transport/ACT-Road-Crash-Data/6jn4-m8rx/about_data
-[2] ACT Transport Strategy 2020
-[3] https://files.accesscanberra.act.gov.au/legacy/4188/Crash%20reporting.pdf
-[4] TODO ref for public holidays
-[5] https://actschoolholidays.com.au/past-years/
-[6] https://www.education.act.gov.au/public-school-life/term_dates_and_public_holidays/act-school-terms-dates-and-public-holiday-calendar (Contains historical data on the past dates, chatGPT was used to scrap data from earlier years)
-[7] https://otexts.com/fpp3/
-[8] https://otexts.com/fpp3/arima-r.html
+- [1] https://www.data.act.gov.au/Transport/ACT-Road-Crash-Data/6jn4-m8rx/about_data
+- [2] ACT Transport Strategy 2020
+- [3] https://files.accesscanberra.act.gov.au/legacy/4188/Crash%20reporting.pdf
+- [4] TODO ref for public holidays
+- [5] https://actschoolholidays.com.au/past-years/
+- [6] https://www.education.act.gov.au/public-school-life/term_dates_and_public_holidays/act-school-terms-dates-and-public-holiday-calendar (Contains historical data on the past dates, chatGPT was used to scrap data from earlier years)
+- [7] https://otexts.com/fpp3/
+- [8] https://otexts.com/fpp3/arima-r.html
 
