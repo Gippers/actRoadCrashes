@@ -46,3 +46,6 @@ execute:
   echo: false
   warning: false
   message: false
+
+bibliography: actCrashes.bib
+csl: csl/harvard-cite-them-right.csl
