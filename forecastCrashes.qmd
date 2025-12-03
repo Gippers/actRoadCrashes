@@ -8,7 +8,6 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 # Load necessary libraries
 library(tidyverse)
 library(MASS) # Ordered logistic regression
-library(here)
 library(data.table)
 library(astsa)
 library(TSA)
@@ -37,7 +36,7 @@ The data used for this report was collected by the AFP Crash Report Form, and co
 We will refer to the number of car crashes as $y_t$, where $t = 1, 2, ..., 1825, 1826$. The first day of data is 1 January 2015 and the last day is 31 December 2019.
 ```{r}
 # Load the crash data and aggregate by day
-crash <- read.csv(paste0(here::here("data"), "/ACT_Road_Crash_data_20250430.csv"))
+crash <- read.csv("data/ACT_Road_Crash_data_20250430.csv")
 setDT(crash)
 # Aggregate count of crashes by day, note each obsevation does have a unique crashID
 crash <- crash[, .(NUM_CRASHES = .N), by = .(CRASH_DATE)] 
@@ -63,8 +62,7 @@ crash$month <- factor(lubridate::month(as.Date(crash$DATE), label = T),
                        ordered = F)
 
 # Load the public holiday data
-public_holidays <- readxl::read_excel(paste0(here::here("data"), 
-                                           "/public_school_holidays.xlsx"),
+public_holidays <- readxl::read_excel("data/public_school_holidays.xlsx",
                                     sheet = "public_holidays")
 school_holidays <-  read_excel("data/public_school_holidays.xlsx", sheet = "school_holidays")
 setDT(public_holidays)
@@ -259,7 +257,12 @@ crash.train[, z.r := residuals(z.model)]
 First, we will attempt to fit a linear time trend model to the transformed training data $z_t$. Note, a Poisson model was attempted on the untransformed data as the data is Poisson distributed however, the linear model fit on the transformed data was superior. The first model fit was: $M_1:z_t=β_0  + β_1 t_i+β_(2-7) day_i+β_(8-19) month_i+β_(20-23) holiday_i+ \nu_i$. Note that I chose not to fit cyclical day of week and month factors, this is because there is enough observations (912) to fit the more descriptive factor variables and, the marginal trend wasn’t particularly cyclical. This model had some day and months with similar marginal associations and time variables were insignificant, as expected from the trend plots. Days were grouped instead as: Sun, Mon, Tue-Wed, Thu-Fri and Sat and months as: Jan, Feb, Mar, Apr-May, June, July, Aug-Oct, Nov and Dec. A new model was fit with these reduced categories and the time factor removed: $M_2:z_t=β_0+β_(1-4) da〖y2〗_i+β_(5-12) month_i+β_(13-15) holiday_i+ \nu_i$. An Anova test was performed to see if any explanatory power was lost. The p-value of the test was 0.9997, so we failed to reject the null and find no evidence that the additional variables in M_1 are non-zero, and choose the model M_2.
 
 $$
-M_2 : z_t = 3.5402 (0.1191)-0.7205 (0.0811)Sat -1.2200 (0.0768) Sun + 0.3285 (0.0692) \text{Thu-Fri} + 0.2291 (0.0732) \text{Tue-Wed}+0.4536 (0.1046) \text{Apr-May} +0.3564 (0.1048) \text{Aug-Oct} +0.1505 (0.1833) Dec+0.1832 (0.1215) Feb+0.4917 (0.1013) Jul+0.3640 (0.1316) Jun+0.3702 (0.1218) Mar + 0.1801 (0.1259) Nov - 1.9650 (0.1148) \text{Public and School Holiday}-1.9895 (0.2405) \text{Public Holiday} -0.5674 (0.0821) \text{School Holiday} +  \nu_t
+\begin{aligned}
+M_2 : z_t = 3.5402 (0.1191)-0.7205 (0.0811)Sat -1.2200 (0.0768) Sun + 0.3285 (0.0692) \text{Thu-Fri} + 0.2291 (0.0732) \text{Tue-Wed} \\
++0.4536 (0.1046) \text{Apr-May} +0.3564 (0.1048) \text{Aug-Oct} +0.1505 (0.1833) Dec+0.1832 (0.1215) Feb+0.4917 (0.1013) Jul \\
++0.3640 (0.1316) Jun+0.3702 (0.1218) Mar + 0.1801 (0.1259) Nov - 1.9650 (0.1148) \text{Public and School Holiday} \\
+-1.9895 (0.2405) \text{Public Holiday} -0.5674 (0.0821) \text{School Holiday} +  \nu_t
+\end{aligned}
 $${#eq-M2}
 
 We observe that Saturday and Sunday see a large negative marginal association with road crashes, whilst Monday has a positive marginal association, whilst holding all other variable constant. The day of the week being Sunday compared to Monday, is associated with a 1.200 decrease in the square root of the number of ACT Road crashes, holding all other variables constant. So it seems that there are less road crashes on the weekend (Saturday has a similar affect). The month of January stands out as having a large negative marginal association with ACT road crashes and school and public holiday have large negative marginal associations, in particular the public holidays have an association that is approximately three times larger than the school holidays. A public holiday compared to a non-public or school holiday day, is associated with a 1.9895 decrease in the square root of the number of  ACT road crashes, holding all other variables constant. Note that $z_t$ is sqrt transformed when interpreting the above coefficients. An analysis of the residuals shows that the variance has stabilised, however there appears to be some serial autocorrelation of the residuals, potentially of the MA(1) order. These plots are available in the appendix. In addition, due to this dependence of errors, sandwich HAC errors were used for the standard estimates, a full regression output table is in Table C. To remove serial autocorrelation, lets use some ARMA models to model the residuals.
@@ -771,7 +774,6 @@ MSEP <- function(actual, pred)
 #| tbl-cap: "Mean Squared Error of Prediction for all models trained on 1, ..., T predicting T + 1 to T'"
 #| 
 
-
 # Get a number of the MSEP's
 pred_cols <- c("naive", "pred.seacf", "pred.aic", "pred.sar", "pred.asar")
 
@@ -920,8 +922,6 @@ rolling_predict <- function(pdq, # The non-seasonal order
 # Get the rolling windows
 b.2 <- floor(0.74 * t) # half of the training dataset
 b.1 <- floor(0.37 * t) # A quarter of the training dataset
-
-
 ```
 
  
@@ -1017,15 +1017,17 @@ The forecast errors were not considered in this analysis. Further analysis shoul
 
 ```{r}
 # TODO did a consider all of the below?
+
+#- School holidays don't account for private school differences or 
+#- Noted monday and tuesday public holiday resulted in large outlier, try and control for this
+#- Time trend model assumes that the seasonal affects are constant over time - ideally we would use the recent differences 
+#- Non-linear trends
+#- Forecast errors
+#- data required for holidays etc.
+#- can't do double seasons
+#- Another one that is in the text somewhere
 ```
-- School holidays don't account for private school differences or 
-- Noted monday and tuesday public holiday resulted in large outlier, try and control for this
-- Time trend model assumes that the seasonal affects are constant over time - ideally we would use the recent differences 
-- Non-linear trends
-- Forecast errors
-- data required for holidays etc.
-- can't do double seasons
-- Another one that is in the text somewhere
+
 
 
 ```{r}
