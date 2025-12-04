@@ -122,13 +122,30 @@ crash.test <- crash[(t + 1):t.prime]
 
 
 ```{r}
-# Histogram of the number of crashes
-#hist(crash$NUM_CRASHES)
-ggplot(crash, aes(x = NUM_CRASHES)) +
-  geom_histogram(fill = "skyblue", color = "black") +
-  labs(title = "Total Daily Road Crashes in ACT", x = "Number of ACT Road Crashes", y = "Frequency") +
-  theme_minimal()
+#| label: fig-crash-hist
+#| fig-cap: "Distribution of the number of Road Crashes in the ACT from 1 January 2015 to 31 December 2019"
 
+# Histogram of the number of crashes
+plot_ly(x = crash$NUM_CRASHES, 
+        type = "histogram", 
+        xbins = list(size = 1),
+        marker = list(
+          color = "#18BC9C",
+          line = list(color = "black", width = 1)
+        ),
+        hoverinfo = "none",
+        hovertemplate = "Crashes: %{x} | Count: %{y} <extra></extra>",
+        # Update the colouring of the hover label
+        hoverlabel = list(
+          bgcolor = "#2C3E50",       # hover box background
+          bordercolor = "black",     # border colour
+          font = list(color = "white")  # text colour
+        )
+) %>%
+layout(
+  xaxis = list(title = "Number of Crashes"),
+  yaxis = list(title = "Count")
+)
 
 ```
 

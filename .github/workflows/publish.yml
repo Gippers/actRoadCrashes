@@ -29,6 +29,7 @@ jobs:
             any::ggplot2
             any::gt
             any::tsibble
+            any::plotly
           cache-version: 1
 
       - uses: quarto-dev/quarto-actions/setup@v2
