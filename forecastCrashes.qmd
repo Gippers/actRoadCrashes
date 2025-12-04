@@ -153,7 +153,7 @@ Observing the histogram of ACT daily road crashes, we observe that the distribut
 
 ```{r}
 #| label: fig-tsplot
-#| figfig-cap: "Daily Number of Reported ACT Road Crashes 2015 to 2019"
+#| fig-cap: "Daily Number of Reported ACT Road Crashes 2015 to 2019"
 # Plot the entire time series
 # Create labels for the first day of jan and july
 # TODO work a little more on the formatting here
@@ -161,52 +161,70 @@ dates <- format(crash$DATE, "%d-%m") %in% c("01-01", "01-07")
 date.labels <- crash$DATE[dates]
 data.axis <- which(dates)
 
-plot(ts.crash, xaxt = "n", ylab = "Number of Crashes", bty = "L", xlab = "Date", 
-     main = "ACT Road Accidents by Day")
-axis(1, data.axis, format(date.labels, "%m/%y"), las = 2)
-lines(lowess(ts.crash), col = 'red', lwd = 2)
-legend("topright", legend = c("LOWESS", "Train/Test Split"), 
-       col = c("red", "blue"), lwd = 2, lty = c(1, 2),
-       bty = "n")
-# add a vertcal line for the train test split
-abline(v = 912, col = "blue", lwd = 2, lty = 2)
-
 # Fit a lowess trend line
 low <- lowess(crash$NUM_CRASHES)
 crash$trend <- low$y
 
-fig <- plot_ly(crash, type = 'scatter', mode = 'lines', x = ~DATE, 
-      y = ~NUM_CRASHES, name = "Number of Crashes", 
-       hovertemplate = paste(
-          #"Date: %{x|%Y-%m-%d}",
-          "<br>Value: %{y:.2f}",
-          "<extra></extra>"
-        )
-        ) %>%
-  layout() %>%
-  # Add trend line
-  add_lines(x = ~DATE, y = ~trend, name = "Trend", 
-            line = list(color = "#2C3E50", dash = "dash")) %>%
+# Do a time series graph below. Note the tet is greyed for the train/test split. But was hard to find a different solution
 
-  # Add horizontal reference line
-  #add_lines(x = '2017-06-30',y = 0, name = "Reference (0)",
-  #          line = list(color = "blue", width = 1)) %>%
+fig <- plot_ly(
+  crash,
+  type = 'scatter',
+  mode = 'lines',
+  x = ~DATE, 
+  y = ~NUM_CRASHES,
+  name = "Number of Crashes",
+  line = list(color = "#2C3E50"),
+  hovertemplate = "<br>Crashes: %{y:.2f}<extra></extra>"
+) %>%
+  add_lines(
+    x = ~DATE, y = ~trend, name = "Trend",
+    line = list(color = "#95A5A6", dash = "dash"), 
+    hovertemplate = "<br>Trend: %{y:.2f}<extra></extra>"
+  ) %>%
+  add_trace(
+    x = crash$DATE[1:2],          # any two points
+    y = c(0, 0),                  # flat line
+    type = "scatter",
+    mode = "lines",
+    name = "Train/Test Split",
+    line = list(color = "#E74C3C", dash = "dash"),
+    hoverinfo = "skip",
+    visible = "legendonly"       
+  ) %>%
   layout(
-    showlegend = T,
     hovermode = "x unified",
-    hoverdistance = -1,
+    showlegend = TRUE,
+    # Edit legend
+    legend = list(
+      orientation = "h",          # horizontal
+      x = 0.5,                    # centered
+      xanchor = "center",
+      y = 1.1                     # above plot
+    ),
     xaxis = list(
       title = "Date",
       showspikes = TRUE,
-      spikemode = "across",     # vertical line across the plot
-      spikesnap = "cursor",     # or "data"
-      spikethickness = 1,
-      spikedash = "solid",
-      spikecolor = "grey"
+      spikemode = "across",
+      spikesnap = "cursor",
+      spikecolor = "#2C3E50", 
+      hoverformat = "%Y-%m-%d"
     ),
-    yaxis = list(title = "Number of Crashes")
-  )
-
+    yaxis = list(title = "Number of Crashes"), 
+    # non-hoverable train/test split line
+    shapes = list(
+      list(
+        type = "line",
+        xref = "x",
+        yref = "paper",          # 0–1 = bottom–top of plotting area
+        x0 = '2017-06-30',
+        x1 = '2017-06-30',
+        y0 = 0,
+        y1 = 1,
+        line = list(color = "#E74C3C", width = 2, dash = "dash")
+      )
+    )
+  )  
 fig
 
 ```
