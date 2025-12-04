@@ -123,7 +123,7 @@ crash.test <- crash[(t + 1):t.prime]
 
 ```{r}
 #| label: fig-crash-hist
-#| fig-cap: "Distribution of the number of Road Crashes in the ACT from 1 January 2015 to 31 December 2019"
+#| fig-cap: "Distribution of the number of Road Crashes in the ACT from 2015 to 2019."
 
 # Histogram of the number of crashes
 plot_ly(x = crash$NUM_CRASHES, 
@@ -160,6 +160,7 @@ Observing the histogram of ACT daily road crashes, we observe that the distribut
 dates <- format(crash$DATE, "%d-%m") %in% c("01-01", "01-07")
 date.labels <- crash$DATE[dates]
 data.axis <- which(dates)
+
 plot(ts.crash, xaxt = "n", ylab = "Number of Crashes", bty = "L", xlab = "Date", 
      main = "ACT Road Accidents by Day")
 axis(1, data.axis, format(date.labels, "%m/%y"), las = 2)
@@ -170,7 +171,46 @@ legend("topright", legend = c("LOWESS", "Train/Test Split"),
 # add a vertcal line for the train test split
 abline(v = 912, col = "blue", lwd = 2, lty = 2)
 
+# Fit a lowess trend line
+low <- lowess(crash$NUM_CRASHES)
+crash$trend <- low$y
+
+fig <- plot_ly(crash, type = 'scatter', mode = 'lines', x = ~DATE, 
+      y = ~NUM_CRASHES, name = "Number of Crashes", 
+       hovertemplate = paste(
+          #"Date: %{x|%Y-%m-%d}",
+          "<br>Value: %{y:.2f}",
+          "<extra></extra>"
+        )
+        ) %>%
+  layout() %>%
+  # Add trend line
+  add_lines(x = ~DATE, y = ~trend, name = "Trend", 
+            line = list(color = "#2C3E50", dash = "dash")) %>%
+
+  # Add horizontal reference line
+  #add_lines(x = '2017-06-30',y = 0, name = "Reference (0)",
+  #          line = list(color = "blue", width = 1)) %>%
+  layout(
+    showlegend = T,
+    hovermode = "x unified",
+    hoverdistance = -1,
+    xaxis = list(
+      title = "Date",
+      showspikes = TRUE,
+      spikemode = "across",     # vertical line across the plot
+      spikesnap = "cursor",     # or "data"
+      spikethickness = 1,
+      spikedash = "solid",
+      spikecolor = "grey"
+    ),
+    yaxis = list(title = "Number of Crashes")
+  )
+
+fig
+
 ```
+
 We observe several patterns from the time series graph above.  The mean of the time series depends on time, with overall a slight decrease in the second half of the time series. This creates a challenge as the model will be trained on the first half of the data set only which appears to in fact have a stationary mean. This is unavoidable though as the test data set is treated as unobserved for the purposes of the modelling. Therefore, from here on out the EDA will focus on the  $1 \ldots T$ time points as this will guide later model selection. Certain periods in the dataset have decreased variance such as January, which signals the presence of non-constant variance. There is evidence of seasonality, once again around January there is a drop in the number of road crash reports and when you look at a more mirco level there is some obvious weekly seasonality.
 
 ```{r}
