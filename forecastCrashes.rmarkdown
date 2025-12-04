@@ -153,7 +153,7 @@ Observing the histogram of ACT daily road crashes, we observe that the distribut
 
 ```{r}
 #| label: fig-tsplot
-#| fig-cap: "Daily Number of Reported ACT Road Crashes 2015 to 2019"
+#| figfig-cap: "Daily Number of Reported ACT Road Crashes 2015 to 2019"
 # Plot the entire time series
 # Create labels for the first day of jan and july
 # TODO work a little more on the formatting here
@@ -165,8 +165,6 @@ data.axis <- which(dates)
 low <- lowess(crash$NUM_CRASHES)
 crash$trend <- low$y
 
-# Do a time series graph below. Note the tet is greyed for the train/test split. But was hard to find a different solution
-
 fig <- plot_ly(
   crash,
   type = 'scatter',
@@ -175,56 +173,35 @@ fig <- plot_ly(
   y = ~NUM_CRASHES,
   name = "Number of Crashes",
   line = list(color = "#2C3E50"),
-  hovertemplate = "<br>Crashes: %{y:.2f}<extra></extra>"
+  hovertemplate = "<br>Value: %{y:.2f}<extra></extra>"
 ) %>%
   add_lines(
-    x = ~DATE, y = ~trend, name = "LOWESS Trend",
+    x = ~DATE, y = ~trend, name = "Trend",
     line = list(color = "#95A5A6", dash = "dash"), 
-    hovertemplate = "<br>Trend: %{y:.2f}<extra></extra>"
+    hovertemplate = "<br>Value: %{y:.2f}<extra></extra>"
   ) %>%
-  add_trace(
-    x = crash$DATE[1:2],          # any two points
-    y = c(0, 0),                  # flat line
-    type = "scatter",
-    mode = "lines",
+  add_segments(
+    x = as.Date("2017-06-30 "),
+    xend = as.Date("2017-06-30 "),
+    y = 0,
+    yend = max(crash$NUM_CRASHES, na.rm = TRUE),
     name = "Train/Test Split",
-    line = list(color = "#E74C3C", dash = "dash"),
-    hoverinfo = "skip",
-    visible = "legendonly"       
+    line = list(color = "#E74C3C", width = 2, dash = "dash"), 
+    hoverinfo = "skip"
   ) %>%
+
   layout(
     hovermode = "x unified",
     showlegend = TRUE,
-    # Edit legend
-    legend = list(
-      orientation = "h",          # horizontal
-      x = 0.5,                    # centered
-      xanchor = "center",
-      y = 1.1                     # above plot
-    ),
     xaxis = list(
-      title = "",#"Date",
+      title = "Date",
       showspikes = TRUE,
       spikemode = "across",
       spikesnap = "cursor",
-      spikecolor = "#2C3E50", 
-      hoverformat = "%Y-%m-%d"
+      spikecolor = "#2C3E50"
     ),
-    yaxis = list(title = "Number of Crashes"), 
-    # non-hoverable train/test split line
-    shapes = list(
-      list(
-        type = "line",
-        xref = "x",
-        yref = "paper",          # 0–1 = bottom–top of plotting area
-        x0 = '2017-06-30',
-        x1 = '2017-06-30',
-        y0 = 0,
-        y1 = 1,
-        line = list(color = "#E74C3C", width = 2, dash = "dash")
-      )
-    )
-  )  
+    yaxis = list(title = "Number of Crashes")
+  )
 fig
 
 ```
@@ -236,13 +213,12 @@ We observe several patterns from the time series graph above.  The mean of the t
 lambda <- round(BoxCox.lambda(crash.train$NUM_CRASHES), digits = 4)
 ```
 
-We will split the data into train and test such that $T = 912$ and $T' = 913$, meaning that the first day of the test dataset is 1 July 2017. First, we use a Box-Cox test to find the best value of $\lambda = `r lambda`$to stabilise the variance, this is done first as per Hyndamyn [8]. All following time series methods will be applied to this variance stabilize time series $z_t = y_t^{\frac{1}{2}} - 1$. This procedure stabilized the variance of $z_t$, the time series graphs showing this are in see Appendix B. They show that the transformed training data set had a stationary mean, relatively stationary variance however, seasonality is still prevalent. The ACF shows strong correlation at lag 7 and the PACF shows decaying partial correlation at lag 7 (in addition to other lags), which strongly suggests weekly seasonality. Note that yearly seasonality (364 days) was also considered as a possibility however, calendar considerations make this a tricky periodicity to difference at.
+We will split the data into train and test such that T = 912 and T' = 913, meaning that the first day of the test dataset is 1 July 2017. We will split the data into train and test such that $T = 912$ and $T' = 913$, meaning that the first day of the test dataset is 1 July 2017. First, we use a Box-Cox test to find the best value of $\lambda = `r lambda`$to stabilise the variance, this is done first as per Hyndamyn [8]. All following time series methods will be applied to this variance stabilize time series $z_t = y_t^{\frac{1}{2}} - 1$. This procedure stabilized the variance of $z_t$, the time series graphs showing this are in see Appendix B. They show that the transformed training data set had a stationary mean, relatively stationary variance however, seasonality is still prevalent. The ACF shows strong correlation at lag 7 and the PACF shows decaying partial correlation at lag 7 (in addition to other lags), which strongly suggests weekly seasonality. Note that yearly seasonality (364 days) was also considered as a possibility however, calendar considerations make this a tricky periodicity to difference at.
 
 ```{r}
 #| label: fig-boxcox-d1
-#| fig-cap: "Square Root Transformed and First Differenced Daily Number of Reported ACT Road Crashes 2015 to July 2017 (training data set)"
+#| figfig-cap: "Square Root Transformed and First Differenced Daily Number of Reported ACT Road Crashes 2015 to 2019"
 
-# TODO think about what this graph should be. SHould I show square root then first differenced? 
 
 # Make sure crash is ordered correctly
 crash <- crash[order(DATE)]
@@ -259,53 +235,17 @@ d1.crash <- ts(diff(crash.train$NUM_CRASHES))
 
 # Plot the entire time series
 # Create labels for the first day of jan and july
+# TODO work a little more on the formatting here
 #diff.dates <- crash$DATE[-1]
 dates <- format(crash$DATE, "%d-%m") %in% c("01-01", "01-07")
 date.labels <- crash$DATE[dates]
 data.axis <- which(dates)
-
-# Fit a lowess trend line
-low <- lowess(crash.train$z_diff)
-crash.train$trend <- low$y
-
-# Do a time series graph below. Note the tet is greyed for the train/test split. But was hard to find a different solution
-
-fig <- plot_ly(
-  crash.train,
-  type = 'scatter',
-  mode = 'lines',
-  x = ~DATE, 
-  y = ~z_diff,
-  name = "Number of Crashes",
-  line = list(color = "#2C3E50"),
-  hovertemplate = "<br>Crashes: %{y:.2f}<extra></extra>"
-) %>%
-  add_lines(
-    x = ~DATE, y = ~trend, name = "LOWESS Trend",
-    line = list(color = "#95A5A6", dash = "dash"), 
-    hovertemplate = "<br>Trend: %{y:.2f}<extra></extra>"
-  ) %>%
-  layout(
-    hovermode = "x unified",
-    showlegend = TRUE,
-    # Edit legend
-    legend = list(
-      orientation = "h",          # horizontal
-      x = 0.5,                    # centered
-      xanchor = "center",
-      y = 1.1                     # above plot
-    ),
-    xaxis = list(
-      title = "",#"Date",
-      showspikes = TRUE,
-      spikemode = "across",
-      spikesnap = "cursor",
-      spikecolor = "#2C3E50", 
-      hoverformat = "%Y-%m-%d"
-    ),
-    yaxis = list(title = "Square Root and First Differenced Number of Crashes")
-  )  
-fig
+plot(bc.crash, xaxt = "n", ylab = "Zt")
+# TODO fix the start date as the second
+axis(1, data.axis, format(date.labels, "%m/%y"), las = 2)
+lines(lowess(bc.crash), col = 'red', lwd = 2)
+legend("topright", legend = c("LOWESS"), 
+       col = "red", lwd = 2)
 
 #acf(bc.crash)
 #pacf(bc.crash)
