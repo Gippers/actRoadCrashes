@@ -36,6 +36,25 @@ The data used for this report was collected by the AFP Crash Report Form, and co
 
 
 We will refer to the number of car crashes as $y_t$, where $t = 1, 2, ..., 1825, 1826$. The first day of data is 1 January 2015 and the last day is 31 December 2019.
+
+```{r debug-paths, echo=FALSE}
+cat("=== DEBUG: PATHS & FILES ===\n")
+
+cat("getwd():\n")
+print(getwd())
+
+cat("\nRecursive file listing from working directory:\n")
+print(list.files(".", recursive = TRUE, full.names = TRUE))
+
+cat("\nDoes the crash CSV exist (relative path)?\n")
+print(file.exists("data/ACT_Road_Crash_data_20250430.csv"))
+
+cat("\nnormalizePath for crash CSV:\n")
+print(normalizePath("data/ACT_Road_Crash_data_20250430.csv", mustWork = FALSE))
+
+cat("=== END DEBUG ===\n")
+```
+
 ```{r}
 # Load the crash data and aggregate by day
 crash <- read.csv("data/ACT_Road_Crash_data_20250430.csv")
