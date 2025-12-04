@@ -4,6 +4,8 @@ author: "Thomas Martin"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 execute:
   dir: project
+bibliography: actCrashes.bib
+csl: csl/harvard-cite-them-right.csl
 ---
 
 ```{r}
@@ -19,11 +21,12 @@ library(readxl)
 library(patchwork)
 library(sandwich) # Account for seial autocorrelation in errors
 library(gt)
+library(plotly)
 ```
 
 # Introduction
 
-Every day in the Australian Capital Territory (ACT), it is estimated that there are nearly 1 million car trips [@transportcanberraACTTRANSPORTSTRATEGY]. Unfortunately, a small proportion of those daily car trips end in accidents. This report will apply various time series modelling approaches to model the number of daily road crashes in the ACT from the 1 January 2015 to 31 December 2019. The aim of the report is to determine the best estimation technique to produce the most accurate prediction of ACT daily car crashes. The resulting model can be applied to predict the trend in future car crashes in the ACT as well as understand patterns in the prevalence of road accidents in the ACT.
+Every day in the Australian Capital Territory (ACT), it is estimated that there are nearly 1 million car trips [@transportcanberraACTTRANSPORTSTRATEGY2020]. Unfortunately, a small proportion of those daily car trips end in accidents. This report will apply various time series modelling approaches to model the number of daily road crashes in the ACT from the 1 January 2015 to 31 December 2019. The aim of the report is to determine the best estimation technique to produce the most accurate prediction of ACT daily car crashes. The resulting model can be applied to predict the trend in future car crashes in the ACT as well as understand patterns in the prevalence of road accidents in the ACT.
 The data used for this report was collected by the AFP Crash Report Form, and collected from the ACT Open Data Portal as at 30 April 2025 [1]. All crashes in the ACT must be reported to police within 24 hours, unless attended by police [3]. It is worth noting then, that this may under report serious road accidents, which would likely be attended by police. Therefore, we are likely measuring moderate and minor road accidents. This includes all crashes by users, drivers, cyclists, pedestrians and motorcyclists on roads, paths and other road related areas involving pedestrians or cyclists. All crash incidents are aggregated by day to transform the dataset into a daily time series. Therefore, the time series measures daily road crashes in the ACT reported through the AFP crash report system, hereafter referred to as ACT road crashes. This report limited the timeline of the data from 2015 to 2019 to model the data without the presence of the COVID lockdowns skewing the result. 
 
 ```{r}
@@ -37,27 +40,9 @@ The data used for this report was collected by the AFP Crash Report Form, and co
 
 We will refer to the number of car crashes as $y_t$, where $t = 1, 2, ..., 1825, 1826$. The first day of data is 1 January 2015 and the last day is 31 December 2019.
 
-```{r debug-paths, echo=FALSE}
-cat("=== DEBUG: PATHS & FILES ===\n")
-
-cat("getwd():\n")
-print(getwd())
-
-cat("\nRecursive file listing from working directory:\n")
-print(list.files(".", recursive = TRUE, full.names = TRUE))
-
-cat("\nDoes the crash CSV exist (relative path)?\n")
-print(file.exists("data/ACT_Road_Crash_data_20250430.csv"))
-
-cat("\nnormalizePath for crash CSV:\n")
-print(normalizePath("data/ACT_Road_Crash_data_20250430.csv", mustWork = FALSE))
-
-cat("=== END DEBUG ===\n")
-```
-
 ```{r}
 # Load the crash data and aggregate by day
-crash <- read.csv("data/ACT_Road_Crash_data_20250430.csv")
+crash <- read.csv("data/ACT_Road_Crash_Data_20250430.csv")
 setDT(crash)
 # Aggregate count of crashes by day, note each obsevation does have a unique crashID
 crash <- crash[, .(NUM_CRASHES = .N), by = .(CRASH_DATE)] 
@@ -143,6 +128,8 @@ ggplot(crash, aes(x = NUM_CRASHES)) +
   geom_histogram(fill = "skyblue", color = "black") +
   labs(title = "Total Daily Road Crashes in ACT", x = "Number of ACT Road Crashes", y = "Frequency") +
   theme_minimal()
+
+
 ```
 
 Observing the histogram of ACT daily road crashes, we observe that the distribution has a longer right tail suggesting the data is slightly right skewed. This suggests that the data is likely Poisson distributed, however it is not dissimilar to a normal distribution so linear regression may still be appropriate for modelling this data.
