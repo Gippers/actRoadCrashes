@@ -31,6 +31,9 @@ format:
       dark: darkly
     toggle: true
     #css: styles.css
+    grid: 
+      body-width: 800px
+      margin-width: 300px
     toc: true
     toc-depth: 2
     #code-fold: true
