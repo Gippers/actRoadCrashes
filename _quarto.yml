@@ -18,12 +18,17 @@ website:
     - icon: globe
       aria-label: Personal Website
       href: https://www.thomasmartin.id.au
+  sidebar:
+    style: "floating"    # or "docked" / "overlay"
+    pinned: true
+    search: true    
+
 
 format:
   html:
     fig-cap-location: top # Make sure the fig is at top, not working?
     number-sections: true
-    number-depth: 2
+    #number-depth: 2
     colorlinks: true
     fig-pos: "H"
     theme:
@@ -32,10 +37,10 @@ format:
     toggle: true
     #css: styles.css
     grid: 
-      body-width: 800px
-      margin-width: 300px
+      body-width: 1000px
+      margin-width: 200px 
     toc: true
-    toc-depth: 2
+    toc-location: left # TOC on the left
     #code-fold: true
     #code-tools: true
 

@@ -372,13 +372,12 @@ se <- sqrt(diag(vcovHAC(z.model)))
 pv.tt <- pnorm(abs(tt.coef / se), lower.tail = F) * 2
 tt.table <- round(data.frame(estimate = tt.coef, 
                                 se = se, p.values = pv.tt), digits = 4)
-tt.table
 
 # Use anova to test if grouping is ok
 an.test <- anova(z.model, time.model.test)
 pv <- round(an.test$`Pr(>F)`, digits = 4)
 
-BoxCox.lambda(z.model$residuals + 10)
+# BoxCox.lambda(z.model$residuals + 10)
 
 crash.train[, z.r := residuals(z.model)]
 
@@ -388,22 +387,24 @@ crash.train[, z.r := residuals(z.model)]
 #plot(z.model)
 
 # TODO put a model table and residuals tbale here
+
+# TODO put the anove test of m1 and m2 in the appensix
 ```
 
 ## Time Trend Model
 
-First, we will attempt to fit a linear time trend model to the transformed training data $z_t$. Note, a Poisson model was attempted on the untransformed data as the data is Poisson distributed however, the linear model fit on the transformed data was superior. The first model fit was: $M_1:z_t=β_0  + β_1 t_i+β_(2-7) day_i+β_(8-19) month_i+β_(20-23) holiday_i+ \nu_i$. Note that I chose not to fit cyclical day of week and month factors, this is because there is enough observations (912) to fit the more descriptive factor variables and, the marginal trend wasn’t particularly cyclical. This model had some day and months with similar marginal associations and time variables were insignificant, as expected from the trend plots. Days were grouped instead as: Sun, Mon, Tue-Wed, Thu-Fri and Sat and months as: Jan, Feb, Mar, Apr-May, June, July, Aug-Oct, Nov and Dec. A new model was fit with these reduced categories and the time factor removed: $M_2:z_t=β_0+β_(1-4) da〖y2〗_i+β_(5-12) month_i+β_(13-15) holiday_i+ \nu_i$. An Anova test was performed to see if any explanatory power was lost. The p-value of the test was 0.9997, so we failed to reject the null and find no evidence that the additional variables in M_1 are non-zero, and choose the model M_2.
+First, we will attempt to fit a linear time trend model to the transformed training data $z_t$. Note, a Poisson model was attempted on the untransformed data as the data is Poisson distributed however, the linear model fit on the transformed data was superior. The first model fit was: $M_1:z_t=β_0  + β_1 t_i+β_{2-7} day_i+β_{8-19} month_i+β_{20-23} holiday_i+ \nu_i$. Note that I chose not to fit cyclical day of week and month factors, this is because there is enough observations (912) to fit the more descriptive factor variables and, the marginal trend wasn’t particularly cyclical. This model had some day and months with similar marginal associations and time variables were insignificant, as expected from the trend plots. Days were grouped instead as: Sun, Mon, Tue-Wed, Thu-Fri and Sat and months as: Jan, Feb, Mar, Apr-May, June, July, Aug-Oct, Nov and Dec. A new model was fit with these reduced categories and the time factor removed: $M_2:z_t=β_0+β_{1-4} day_i+β_{5-12} month_i+β_{13-15} holiday_i+ \nu_i$. An Anova test was performed to see if any explanatory power was lost. The p-value of the test was 0.9997, so we failed to reject the null and find no evidence that the additional variables in M_1 are non-zero, and choose the model $M_2$. The results of the Anova test and a full table of $M_2$ is available in @sec-ap-a. 
 
 $$
 \begin{aligned}
-M_2 : z_t = 3.5402 (0.1191)-0.7205 (0.0811)Sat -1.2200 (0.0768) Sun + 0.3285 (0.0692) \text{Thu-Fri} + 0.2291 (0.0732) \text{Tue-Wed} \\
-+0.4536 (0.1046) \text{Apr-May} +0.3564 (0.1048) \text{Aug-Oct} +0.1505 (0.1833) Dec+0.1832 (0.1215) Feb+0.4917 (0.1013) Jul \\
-+0.3640 (0.1316) Jun+0.3702 (0.1218) Mar + 0.1801 (0.1259) Nov - 1.9650 (0.1148) \text{Public and School Holiday} \\
+M_2 : z_t = 3.5402 (0.1191)-0.7205 (0.0811)Sat -1.2200 (0.0768) Sun \\ + 0.3285 (0.0692) \text{Thu-Fri} + 0.2291 (0.0732) \text{Tue-Wed} \\
++0.4536 (0.1046) \text{Apr-May} +0.3564 (0.1048) \text{Aug-Oct} \\ +0.1505 (0.1833) Dec+0.1832 (0.1215) Feb+0.4917 (0.1013) Jul \\
++0.3640 (0.1316) Jun+0.3702 (0.1218) Mar + 0.1801 (0.1259) Nov \\ - 1.9650 (0.1148) \text{Public and School Holiday} \\
 -1.9895 (0.2405) \text{Public Holiday} -0.5674 (0.0821) \text{School Holiday} +  \nu_t
 \end{aligned}
 $${#eq-M2}
 
-We observe that Saturday and Sunday see a large negative marginal association with road crashes, whilst Monday has a positive marginal association, whilst holding all other variable constant. The day of the week being Sunday compared to Monday, is associated with a 1.200 decrease in the square root of the number of ACT Road crashes, holding all other variables constant. So it seems that there are less road crashes on the weekend (Saturday has a similar affect). The month of January stands out as having a large negative marginal association with ACT road crashes and school and public holiday have large negative marginal associations, in particular the public holidays have an association that is approximately three times larger than the school holidays. A public holiday compared to a non-public or school holiday day, is associated with a 1.9895 decrease in the square root of the number of  ACT road crashes, holding all other variables constant. Note that $z_t$ is sqrt transformed when interpreting the above coefficients. An analysis of the residuals shows that the variance has stabilised, however there appears to be some serial autocorrelation of the residuals, potentially of the MA(1) order. These plots are available in the appendix. In addition, due to this dependence of errors, sandwich HAC errors were used for the standard estimates, a full regression output table is in Table C. To remove serial autocorrelation, lets use some ARMA models to model the residuals.
+We observe that Saturday and Sunday see a large negative marginal association with road crashes, whilst Monday has a positive marginal association, whilst holding all other variable constant. The day of the week being Sunday compared to Monday, is associated on average with a $1.200$ decrease in the square root of the number of ACT Road crashes, holding all other variables constant. So it seems that there are less road crashes on the weekend (Saturday has a similar affect). The month of January stands out as having a large negative marginal association with ACT road crashes and school and public holiday have large negative marginal associations, in particular the public holidays have an association that is approximately three times larger than the school holidays. A public holiday compared to a non-public or school holiday day, is associated with a 1.9895 decrease in the square root of the number of  ACT road crashes, holding all other variables constant. Note that $z_t$ is sqrt transformed when interpreting the above coefficients. An analysis of the residuals shows that the variance has stabilised, however there appears to be some serial autocorrelation of the residuals, potentially of the MA(1) order. These plots are available in the appendix. In addition, due to this dependence of errors, sandwich HAC errors were used for the standard estimates, a full regression output table is in Table C. To remove serial autocorrelation, lets use some ARMA models to model the residuals.
 
 ::: callout-note
 ## Time Series Display for Time Trend Model (optional)
@@ -425,7 +426,7 @@ As above, the residuals appear to demonstrate MA(1) autocorrelation.
 :::
 
 
-## Time Trend with ARMA(0, 1) Residuals (SEACF)
+### Time Trend with ARMA(0, 1) Residuals (SEACF)
 
 The ACF and PACF plot provide weak evidence of a simple ARMA(0, 1) trend in the residuals $\nu_t$. Lets perform a SEACF plot to estimate the order of an ARMA model fitted to these time-trend residuals, with a maximum order of p = 14 and q = 20.
 
@@ -483,7 +484,7 @@ $${#eq-M3}
 Overall, the interpretation of this model is the same as the time-trend model but without serial autocorrelation. We estimate that the error of the time-trend model follows a moving average ARMA(0, 1) process, however this is the only additional interpretation we can make.  No linear trend with time exists in the data, and the fluctuations appear to mostly be driven by seasonal trends and public holidays.
 
 
-## Time Trend with ARMA(1, 0) Residuals (AIC)
+### Time Trend with ARMA(1, 0) Residuals (AIC)
 
 In addition to the SEACF, lets also try another order estimation technique for $\nu_t$. Particularly as the SEACF plot was not definite on the best vertex choice. Instead, we will fit all combinations of ARMA(p, q) up to order 7, and find the model with the smallest Alkaline Information Criteria (AIC). 7 is used as the maximum order as strong seasonality at this order was detected and the SEACF indicates the best choice is somewhere in this range. The table of fitted AIC is below in @tbl-tt-aic, the smallest AIC was found for the ARMA(1, 0) model with an AIC of 1734.405. This was closely followed by ARMA(0, 1) model with AIC of 1734.747. 
 ```{r}
@@ -1187,3 +1188,27 @@ This report fit four time series model to the ACT crash data from 1 January 2015
 - [7] https://otexts.com/fpp3/
 - [8] https://otexts.com/fpp3/arima-r.html
 
+# Appendix
+
+## Appendix A: Model Outputs {#sec-ap-a}
+
+```{r}
+#| label: tbl-anove
+#| tbl-cap: "Anova test of M₁ and M₂"
+
+# TODO make this look a little pretty
+an.test
+```
+
+
+```{r}
+#| label: tbl-timetrend
+#| tbl-cap: "Base Time Trend Model Estimates"
+tt.table$row <- rownames(tt.table)
+# Format a little
+tt.table$row <- gsub("day2", "Day: ", tt.table$row)
+tt.table$row <- gsub("holiday", "Holiday: ", tt.table$row)
+tt.table$row <- gsub("month2", "Month: ", tt.table$row)
+
+gt(tt.table, rowname_col = "row")
+```
