@@ -319,18 +319,36 @@ My prior going into this analysis, is that road crashes will occur more frequent
 
 
 ```{r}
-# Plot the day, month and public holiday data fpr transformed data
-g1 <- ggplot(crash.train, aes(x = day, y = z)) +
-  geom_boxplot() +
-  ggtitle("ACT Car Crashes by Day of Week")
-g2 <- ggplot(crash.train, aes(x = month, y = z)) +
-  geom_boxplot() +
-  ggtitle("ACT Car Crashes by Month")
-g3 <- ggplot(crash.train, aes(x = holiday, y = z)) +
-  geom_boxplot() +
-  ggtitle("ACT Car Crashes by Holiday")
-combined <- g1 + g2 +g3
-combined
+#| label: fig-box-seasonal
+#| fig-cap: "Box Plots of Seasonal Components"
+#| fig-subcap: 
+#| - "ACT Car Crashes by Day of Week"
+#| - "ACT Car Crashes by Month"
+#| - "ACT Car Crashes by Holiday"
+#| fig-nrow: 3
+
+# Plot the day, month and public holiday data fpr transformed data with plotly
+fig <- plot_ly(crash.train, y = ~NUM_CRASHES, color = ~day, type = "box") %>%
+  layout(yaxis = list(title = "Number of Car Crashes"), 
+          xaxis = list(title = "Day of Week"))
+fig
+
+fig <- plot_ly(crash.train, y = ~NUM_CRASHES, color = ~month, type = "box") %>%
+  layout(yaxis = list(title = "Number of Car Crashes"), 
+          xaxis = list(title = "Month of Year"))
+fig
+
+fig <- plot_ly(crash.train, y = ~NUM_CRASHES, color = ~holiday, type = "box") %>%
+  layout(yaxis = list(title = "Number of Car Crashes"), 
+          xaxis = list(title = "Public Holiday"), 
+          legend = list(
+            orientation = "h",    # horizontal legend
+            x = 0.5,              # center it horizontally
+            xanchor = "center",
+            y = 1.1              # move below plot (negative = below)
+          )
+        )
+fig
 ```
 
 As hypothesized, there is a strong pattern in the weekday data where Saturday and Sunday have the least crashes. The month plot mostly shows a significant difference only for January and maybe a slight difference for December. Holidays plot shows strong reduction in crashes, particularly for public holidays. These factors should be considered in a time-trend model.
