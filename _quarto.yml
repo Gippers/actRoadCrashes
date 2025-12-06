@@ -41,6 +41,8 @@ format:
       margin-width: 200px 
     toc: true
     toc-location: left # TOC on the left
+    citations: true
+    link-citations: true
     #code-fold: true
     #code-tools: true
 
