@@ -330,7 +330,8 @@ My prior going into this analysis, is that road crashes will occur more frequent
 # Plot the day, month and public holiday data fpr transformed data with plotly
 fig <- plot_ly(crash.train, y = ~NUM_CRASHES, color = ~day, type = "box") %>%
   layout(yaxis = list(title = "Number of Car Crashes"), 
-          xaxis = list(title = "Day of Week"))
+          xaxis = list(title = "Day of Week")
+          )
 fig
 
 fig <- plot_ly(crash.train, y = ~NUM_CRASHES, color = ~month, type = "box") %>%
@@ -412,15 +413,19 @@ We observe that Saturday and Sunday see a large negative marginal association wi
 <summary>Click to expand time series diagnostic display</summary>
 
 ```{r}
+#| label: fig-tsdisp-tt
+#| fig-cap: "Time series display for the residuals of the time trend model."
 #| code-fold: true
 #| code-summary: "Show residual diagnostics for Time Trend Model"
-
+#| fig-width: 12
+#| fig-height: 6
+#| fig-align: "center"
 
 # residuals for the model z 
-tsdisplay(crash.train$z.r, ci.type = "ma")
+tsdisplay(crash.train$z.r, ci.type = "ma",  main = "")
 
 ```
-As above, the residuals appear to demonstrate MA(1) autocorrelation.
+As above, the residuals appear to demonstrate MA(1) or AR(1) autocorrelation 
 
 </details>
 :::
@@ -441,22 +446,49 @@ eacf_mat <- eout$symbol
 ```
 
 ```{r}
-#| label: tbl-seach
+#| label: tbl-seacf
 #| tbl-cap: "SEACF table of residuals of Time Trend Model"
 
-eacf_mat |>
-  as.data.frame() |>
-  rownames_to_column("AR order") |>
-  gt()  |>
-  #tab_header("Extended Autocorrelation Function (EACF)") |>
-  # Make the whole table use 100% of the container width
-  tab_options(
-    table.width = pct(100)
-  ) |>
-  # Make all non-stub columns equal width
-  cols_width(
-    everything() ~ pct(100 / ncol(eacf_mat))
-  )
+
+
+# Build a highlight matrix
+highlight_mat <- eacf_mat == "o" # TODO make thie actually work
+
+gt_tbl <- eacf_mat |>
+as.data.frame() |>
+rownames_to_column("AR order") |>
+gt()  |>
+#tab_header("Extended Autocorrelation Function (EACF)") |>
+# Make the whole table use 100% of the container width
+tab_options(
+  table.width = pct(100)
+) 
+
+
+n_cols <- dim(eacf_mat)[2] 
+col_names <- colnames(eacf_mat)
+
+for (i in seq_len(dim(eacf_mat)[1])) {
+
+  # columns to highlight in this row, corresponds to MA(1)
+  cols_to_hl <- col_names[(i+1):n_cols]
+
+  # highlight in gt table
+  gt_tbl <- gt_tbl |>
+    tab_style(
+      style = list(cell_fill(color = "#2C3E50"),
+      cell_text(color = "white")),
+      locations = cells_body(
+        rows = i,
+        columns = all_of(cols_to_hl)
+      )
+    )
+}
+
+# Finish off the table
+gt_tbl |> cols_width(
+  everything() ~ pct(100 / ncol(eacf_mat))
+)
 
 # TODO colour the triangle
 ```
