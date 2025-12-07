@@ -156,7 +156,7 @@ Observing the histogram of ACT daily road crashes, we observe that the distribut
 #| fig-cap: "Daily Number of Reported ACT Road Crashes 2015 to 2019"
 # Plot the entire time series
 # Create labels for the first day of jan and july
-# TODO work a little more on the formatting here
+
 dates <- format(crash$DATE, "%d-%m") %in% c("01-01", "01-07")
 date.labels <- crash$DATE[dates]
 data.axis <- which(dates)
@@ -970,32 +970,69 @@ gt(msep_results, rowname_col = "row")
 
 ```
  
-In terms of $MSEP^{(T^')}$, the most accurate model is the Time-Trend ARMA(1,0) model (fit using AIC method) that marginally beats out the other Time-Trend. In truth, the accuracy between the two time trend models is nearly indistinguishable, which makes sense as the ARMA errors are only different for the first few time points then decay quickly to the mean. Notably, the Time-Trend model performs more than twice as good compared to a Naïve predictor.
+In terms of $MSEP^{(T')}$, the most accurate model is the Time-Trend ARMA(1,0) model (fit using AIC method) that marginally beats out the other Time-Trend. In truth, the accuracy between the two time trend models is nearly indistinguishable, which makes sense as the ARMA errors are only different for the first few time points then decay quickly to the mean. Notably, the Time-Trend model performs more than twice as good compared to a Naïve predictor.
 
 ```{r}
 #| label: fig-pred
-#| fig-cap: "Model Test Prediction vs Actual"
+#| fig-cap: "Model Test Prediction vs Actual for testing dataset"
 
-# TODO use an interactive graph
-# TODO fix the green line
-# Compare some of the forecasts via plots
-par(mar = c(5, 4, 4, 8), xpd = TRUE)  # extra space on right
-plot(ts(crash.test$NUM_CRASHES,start = 912 ), type = "l", lwd = 2, ylim = range(c(crash.test$NUM_CRASHES, crash.test$pred.seacf)), 
-     main = "", ylab = "ACT Daily Road Crashes", bty = "l")
-lines(crash.test$pred.seacf, col = "lightblue", lwd = 2, lty = 2) # SEACF Line
-lines(crash.test$pred.aic, col = "blue", lwd = 2, lty = 2) # SEACF Line # ETS line 
-lines(crash.test$pred.sar, col = "orange", lwd = 2, lty = 2) # aa
-lines(crash.test$pred.asar, col = "red2", lwd = 2, lty = 2) # aa
-lines(ts(crash.test$naive, start = t+1), col = "green", lwd = 2, lty = 2) # aa
-
-legend("topright", inset = c(-0.35, 0),
-       legend = c("Actual", "SEACF", "AIC", "SARIMA", "Auto SARIMA", "Naive "), 
-       col = c("black", "lightblue", "blue", "orange", "red2", "green"),
-       lwd = 2, 
-       lty = c(1, 2, 2, 2, 2, 2),
-       bty = "n")
-
-# TODO fix the legend and graph lavels
+# TODO better colours
+fig <- plot_ly(
+  crash.test,
+  type = 'scatter',
+  mode = 'lines',
+  x = ~DATE, 
+  y = ~NUM_CRASHES,
+  name = "Number of Crashes",
+  line = list(color = "black"),
+  hovertemplate = "<br>Crashes: %{y:.2f}<extra></extra>"
+) %>%
+  add_lines(
+    x = ~DATE, y = ~pred.seacf, name = "Time Trend with MA(1) residuals (SEACF)",
+    line = list(color = "lightblue", dash = "dash"), 
+    hovertemplate = "<br>Time Trend with MA(1) residuals: %{y:.2f}<extra></extra>"
+  ) %>% 
+  add_lines(
+    x = ~DATE, y = ~pred.aic, name = "Time Trend with AR(1) residuals (AIC)",
+    line = list(color = "blue", dash = "dash"), 
+    hovertemplate = "<br>Time Trend with AR(1) residuals: %{y:.2f}<extra></extra>"
+  ) %>%
+     add_lines(
+    x = ~DATE, y = ~pred.sar, name = "SARIMA Model",
+    line = list(color = "orange", dash = "dash"), 
+    hovertemplate = "<br>SARIMA Model: %{y:.2f}<extra></extra>"
+  ) %>%
+     add_lines(
+    x = ~DATE, y = ~pred.asar, name = "Auto Sarima Model",
+    line = list(color = "red2", dash = "dash"), 
+    hovertemplate = "<br>Auto Sarima Model: %{y:.2f}<extra></extra>"
+  ) %>%
+  add_lines(
+    x = ~DATE, y = ~naive, name = "Naive",
+    line = list(color = "green", dash = "dash"), 
+    hovertemplate = "<br>Naive: %{y:.2f}<extra></extra>"
+  ) %>%
+  layout(
+    hovermode = "x unified",
+    showlegend = TRUE,
+    # Edit legend
+    legend = list(
+      orientation = "h",          # horizontal
+      x = 0.5,                    # centered
+      xanchor = "center",
+      y = 1.1                     # above plot
+    ),
+    xaxis = list(
+      title = "",#"Date",
+      showspikes = TRUE,
+      spikemode = "across",
+      spikesnap = "cursor",
+      spikecolor = "#2C3E50", 
+      hoverformat = "%Y-%m-%d"
+    ),
+    yaxis = list(title = "ACT Daily Road Crashes")
+  )  
+fig
 
 ```
 
@@ -1004,21 +1041,64 @@ legend("topright", inset = c(-0.35, 0),
 #| label: fig-pred-4weeks
 #| fig-cap: "Model Test Prediction vs Actual for First 4 Weeks"
 # Plot for the first month
-par(mar = c(5, 4, 4, 8), xpd = TRUE)  # extra space on right
-plot(crash.test[1:28]$NUM_CRASHES, type = "l", lwd = 2, ylim = range(c(crash.test$NUM_CRASHES, crash.test$pred.seacf)), 
-     main = "Model Test Prediction vs Actual and Naive Forecasts - First 4 weeks", ylab = "ACT Daily Road Crashes", xlab = "Time", bty = "l")
-lines(as.numeric(crash.test[1:28]$pred.seacf), col = "lightblue", lwd = 2, lty = 2) # SEACF Line
-lines(as.numeric(crash.test[1:28]$pred.aic), col = "blue", lwd = 2, lty = 2) # SEACF Line # ETS line 
-lines(as.numeric(crash.test[1:28]$pred.sar), col = "orange", lwd = 2, lty = 2) # aa
-lines(as.numeric(crash.test[1:28]$pred.asar), col = "red2", lwd = 2, lty = 2) # aa
-lines(as.numeric(crash.test[1:28]$naive), col = "green", lwd = 2, lty = 2) # aa
 
-legend("topright", inset = c(-0.2, 0),
-       legend = c("Actual", "SEACF", "AIC", "SARIMA", "Auto SARIMA", "Naive "), 
-       col = c("black", "lightblue", "blue", "orange", "red2", "green"),
-       lwd = 2, 
-       lty = c(1, 2, 2, 2, 2, 2),
-       bty = "n")
+# TODO colour
+fig <- plot_ly(
+  crash.test[1:28],
+  type = 'scatter',
+  mode = 'lines',
+  x = ~DATE, 
+  y = ~NUM_CRASHES,
+  name = "Number of Crashes",
+  line = list(color = "black"),
+  hovertemplate = "<br>Crashes: %{y:.2f}<extra></extra>"
+) %>%
+  add_lines(
+    x = ~DATE, y = ~pred.seacf, name = "Time Trend with MA(1) residuals (SEACF)",
+    line = list(color = "lightblue", dash = "dash"), 
+    hovertemplate = "<br>Time Trend with MA(1) residuals: %{y:.2f}<extra></extra>"
+  ) %>% 
+  add_lines(
+    x = ~DATE, y = ~pred.aic, name = "Time Trend with AR(1) residuals (AIC)",
+    line = list(color = "blue", dash = "dash"), 
+    hovertemplate = "<br>Time Trend with AR(1) residuals: %{y:.2f}<extra></extra>"
+  ) %>%
+     add_lines(
+    x = ~DATE, y = ~pred.sar, name = "SARIMA Model",
+    line = list(color = "orange", dash = "dash"), 
+    hovertemplate = "<br>SARIMA Model: %{y:.2f}<extra></extra>"
+  ) %>%
+     add_lines(
+    x = ~DATE, y = ~pred.asar, name = "Auto Sarima Model",
+    line = list(color = "red2", dash = "dash"), 
+    hovertemplate = "<br>Auto Sarima Model: %{y:.2f}<extra></extra>"
+  ) %>%
+  add_lines(
+    x = ~DATE, y = ~naive, name = "Naive",
+    line = list(color = "green", dash = "dash"), 
+    hovertemplate = "<br>Naive: %{y:.2f}<extra></extra>"
+  ) %>%
+  layout(
+    hovermode = "x unified",
+    showlegend = TRUE,
+    # Edit legend
+    legend = list(
+      orientation = "h",          # horizontal
+      x = 0.5,                    # centered
+      xanchor = "center",
+      y = 1.1                     # above plot
+    ),
+    xaxis = list(
+      title = "",#"Date",
+      showspikes = TRUE,
+      spikemode = "across",
+      spikesnap = "cursor",
+      spikecolor = "#2C3E50", 
+      hoverformat = "%Y-%m-%d"
+    ),
+    yaxis = list(title = "ACT Daily Road Crashes")
+  )  
+fig
 ```
 
 The required time series graph is a little difficult to interpret given the large number of data points so, an additional graph only looking at the first 28 days was included. The graph shows that neither of the time-trend models (aka SEACF or AIC) have an indistinguishable fit. The AIC and SEACF time-trend models appear to most accurately follow the peaks and troughs of the actual trend however, the SARIMA model also appears to do a decent job. The Auto Sarima model is too smoothed and appears to underfit the peaks and troughs of the data. This is the same conclusion as the $MSEP^{(T')}$ which makes sense as the accuracy measure is the mean squared distance to the true point. $MSEP^{(T')}$ can be inaccurate however when there are lots of large outliers, so the $MSEP^{(T')}$. In our case however, we didn’t see more than 10 outliers for either trend, so it is understandable that $MSEP^{(T')}$ matches the findings of the graph.
