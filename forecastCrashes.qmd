@@ -1020,7 +1020,7 @@ fig <- plot_ly(
       orientation = "h",          # horizontal
       x = 0.5,                    # centered
       xanchor = "center",
-      y = 1.1                     # above plot
+      y = -0.05                     # above plot
     ),
     xaxis = list(
       title = "",#"Date",
@@ -1086,7 +1086,7 @@ fig <- plot_ly(
       orientation = "h",          # horizontal
       x = 0.5,                    # centered
       xanchor = "center",
-      y = 1.1                     # above plot
+      y = -0.05                     # above plot
     ),
     xaxis = list(
       title = "",#"Date",
