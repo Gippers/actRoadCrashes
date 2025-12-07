@@ -30,6 +30,7 @@ jobs:
             any::gt
             any::tsibble
             any::plotly
+            any::modelsummary
           cache-version: 1
 
       - uses: quarto-dev/quarto-actions/setup@v2

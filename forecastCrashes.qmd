@@ -447,12 +447,7 @@ eacf_mat <- eout$symbol
 
 ```{r}
 #| label: tbl-seacf
-#| tbl-cap: "SEACF table of residuals of Time Trend Model"
-
-
-
-# Build a highlight matrix
-highlight_mat <- eacf_mat == "o" # TODO make thie actually work
+#| tbl-cap: "SEACF table of residuals of Time Trend Model. The dark blue highlights the largest triangle of zeros, which corresponds to an MA(1) model."
 
 gt_tbl <- eacf_mat |>
 as.data.frame() |>
@@ -505,12 +500,11 @@ se <- sqrt(diag(ARMA.SEACF.ML$var.coef))
 pv.ml <- (pnorm(abs(ARMA.SEACF.ML$coef / se), lower.tail = F)) * 2
 seacf.table <- data.frame(estimate = ARMA.SEACF.ML$coef, 
                                 se = se, p.values = pv.ml)
-seacf.table
-#ARMA.SEACF.CSS = Arima(train.bc.crash, order=c(4,0,5),
-#                 method='CSS')
+
+
 ```
 
-The formula for the ARMA(0,1) model is: $\nu_t=0.1672(0.03226) \epsilon_{t-1}+ \epsilon_t$. And then the final time trend model with ARMA(0,1) residuals is:
+The formula for the ARMA(0,1) model is: $\nu_t=0.1672(0.03226) \epsilon_{t-1}+ \epsilon_t$ (table of estimates available in @tbl-tt-seacf). And then the final time trend model with ARMA(0,1) residuals is:
 
 $$
 \begin{aligned}
@@ -590,7 +584,7 @@ aic.table <- data.frame(estimate = ARMA.AIC.ML$coef,
 # TODO include this table somehow
 ```
 
-Therefore, we fit the following AR(1) model to $\nu_t=0.1690(0.03277) \nu_{t-1}+ \epsilon_t$, which was significant to at least the 95% confidence level (output table available in appendix). Then the final model is a time-trend model with ARMA(1, 0) residuals:
+Therefore, we fit the following AR(1) model to $\nu_t=0.1690(0.03277) \nu_{t-1}+ \epsilon_t$ (see table based output in @tbl-tt-aic), which was significant to at least the 95% confidence level (output table available in appendix). Then the final model is a time-trend model with ARMA(1, 0) residuals:
 
 $$
 \begin{aligned}
@@ -606,6 +600,10 @@ $${#eq-M4}
 Again, there isn’t any additional interpretation outside of the time-trend model besides saying that the structure of the error of the time-trend model follows an autoregressive AR(1) pattern.
 
 ## Seasonal ARIMA Model of $Z_t$
+
+```{r}
+# TODO up to here
+```
 
 We appear to have quite successfully fit two time-trend models. Let’s see if a Seasonal Autoregressive Integrated Moving Average (SARIMA or Seasonal ARIMA) model can outperform these time-trend models. The SARIMA approach has the benefit of being much simpler to fit as less data preprocessing is necessary, and you only need to fit one model. An ARIMA model will not be considered, as there is clear evidence of seasonality in the dataset. Analysis procedure here based on chapter 8 of forecasting principles and practice version 1 [@hyndmanForecastingPrinciplesPractice2021]. 
 
@@ -1232,8 +1230,7 @@ This report fit four time series model to the ACT crash data from 1 January 2015
 #| label: tbl-anove
 #| tbl-cap: "Anova test of M₁ and M₂"
 
-# TODO make this look a little pretty
-an.test
+modelsummary::datasummary_df(as.data.frame(an.test))
 ```
 
 
@@ -1247,4 +1244,25 @@ tt.table$row <- gsub("holiday", "Holiday: ", tt.table$row)
 tt.table$row <- gsub("month2", "Month: ", tt.table$row)
 
 gt(tt.table, rowname_col = "row")
+```
+
+
+```{r}
+#| label: tbl-tt-seacf
+#| tbl-cap: "MA(1) residual estimates for time trend model. MA(1) residual estimation selected using the SEACF approach."
+
+seacf.table <- round(seacf.table, digits = 4)
+
+gt(seacf.table)
+
+```
+
+
+```{r}
+#| label: tbl-est-aic
+#| tbl-cap: "AR(1) residual estimates for time trend model. AR(1) residual estimation selected using the AIC approach."
+
+aic.table <- round(aic.table, digits = 4)
+
+gt(aic.table)
 ```
