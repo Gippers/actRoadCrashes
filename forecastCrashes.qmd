@@ -415,14 +415,25 @@ We observe that Saturday and Sunday see a large negative marginal association wi
 ```{r}
 #| label: fig-tsdisp-tt
 #| fig-cap: "Time series display for the residuals of the time trend model."
+#| fig-subcap:
+#|   - "Time series of residuals"
+#|   - "Autocorrelation function"
+#|   - "Partial autocorrelation function"
+#| layout: [[1], [2, 3]]
 #| code-fold: true
 #| code-summary: "Show residual diagnostics for Time Trend Model"
 #| fig-width: 12
 #| fig-height: 6
 #| fig-align: "center"
 
-# residuals for the model z 
-tsdisplay(crash.train$z.r, ci.type = "ma",  main = "")
+# Time series plot
+plot(crash.train$z.r, main = "", ylab = "Residuals", xlab = "Time")
+
+# ACF plot
+acf(crash.train$z.r, main = "", ci.type = "ma")
+
+# PACF plot
+pacf(crash.train$z.r, main = "")
 
 ```
 As above, the residuals appear to demonstrate MA(1) or AR(1) autocorrelation 
