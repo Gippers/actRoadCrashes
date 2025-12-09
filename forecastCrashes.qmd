@@ -800,7 +800,6 @@ gt(aic.sarima, rowname_col = "row") |>
     sarima.201.101 = md("$\\text{SARIMA}(2,0,1)(1,0,1)_7$"), 
   )
   
-
 ```
 
 Let’s now fit and estimate this model, note we will use a mean as there is no time trend part.
@@ -810,6 +809,7 @@ Let’s now fit and estimate this model, note we will use a mean as there is no 
 #| label: tbl-sarima-est
 #| tbl-cap: "Estimates for the SARIMA(2,0,1)(1,0,1)[7] model"
 
+# TODO up to here
 # Table for the samrima
 # pvalues using a z-test
 se.s <- sqrt(diag(sarima.final$var.coef))
