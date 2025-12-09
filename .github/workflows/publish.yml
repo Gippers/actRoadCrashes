@@ -31,6 +31,7 @@ jobs:
             any::tsibble
             any::plotly
             any::modelsummary
+            any::katex
           cache-version: 1
 
       - uses: quarto-dev/quarto-actions/setup@v2
