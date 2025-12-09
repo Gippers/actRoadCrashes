@@ -613,25 +613,78 @@ Again, there isn’t any additional interpretation outside of the time-trend mod
 
 ## Seasonal ARIMA Model of $Z_t$
 
-```{r}
-# TODO up to here
-```
-
 We appear to have quite successfully fit two time-trend models. Let’s see if a Seasonal Autoregressive Integrated Moving Average (SARIMA or Seasonal ARIMA) model can outperform these time-trend models. The SARIMA approach has the benefit of being much simpler to fit as less data preprocessing is necessary, and you only need to fit one model. An ARIMA model will not be considered, as there is clear evidence of seasonality in the dataset. Analysis procedure here based on chapter 8 of forecasting principles and practice version 1 [@hyndmanForecastingPrinciplesPractice2021]. 
 
 ```{r}
-# Regular display of time series
-tsdisplay(crash.train$z, ci.type = "ma", main = "Square Root Transformed ACT Road Crashes (Zt)")
+#| label: fig-tsdisp-zt
+#| fig-cap: "Time series display for Square Root Transformed ACT Road Crashes ($Z_t$)."
+#| fig-subcap:
+#|   - "Time series of residuals"
+#|   - "Autocorrelation function"
+#|   - "Partial autocorrelation function"
+#| layout: [[100], [50, 50]]
+#| code-fold: true
+#| code-summary: "Show residual diagnostics for Time Trend Model"
+#| fig-width: 12
+#| fig-height: 6
+#| fig-align: "center"
+
+# Time series plots, below are setup to closely mimic output of tsdisplay but with quarto functionality
+plot(crash.train$DATE, crash.train$z, main = "", ylab = "Residuals", xlab = "Time", type = "o", 
+   pch = 20, cex = 0.5)
+
+# ACF plot
+acf(crash.train$z, main = "", ci.type = "ma")
+
+# PACF plot
+pacf(crash.train$z, main = "")
 ```
 
 
 ```{r}
+#| label: fig-tsdisp-zd
+#| fig-cap: "Time series display for Weekly Differenced, Square Root Transformed ACT Road Crashes ($Z_t - Z_{t-7}$)."
+#| fig-subcap:
+#|   - "Time series of residuals"
+#|   - "Autocorrelation function"
+#|   - "Partial autocorrelation function"
+#| layout: [[100], [50, 50]]
+#| code-fold: true
+#| code-summary: "Show residual diagnostics for Time Trend Model"
+#| fig-width: 12
+#| fig-height: 6
+#| fig-align: "center"
+
 # 7 differenced:
-tsdisplay(diff(crash.train$z, lag = 7), ci.type = "ma", main = "Weekly Differced Square Root Transformed ACT Road Crashes (Zt - Z_{t-7})")
+plot(crash.train$DATE[-(1:7)], diff(crash.train$z, lag = 7), main = "", ylab = "Residuals", xlab = "Time", type = "o", 
+   pch = 20, cex = 0.5)
+
+# ACF plot
+acf(diff(crash.train$z, lag = 7), main = "", ci.type = "ma")
+
+# PACF plot
+pacf(diff(crash.train$z, lag = 7), main = "")
 ```
 
-From the plots of $z_t$, we see that the mean appears to be stationary but there is evidence of seasonality. The ACF shows spikes at lag 6 and the PACF shows also spikes at lag 7, that decay to 0. This is evidence of weekly seasonality; therefore, we take a seasonal difference of 7 and then analyse $z_t-z_(t-7)$. This plot shows a spike in the ACF at lag 7 only and decaying spikes in the PACF at 7, this indicates that we have somewhat dealt with the seasonality by differencing. There is no evidence of a trend so $d = D = 0$. The seasonally differenced ACF plot also indicates a $MA(1)_7$ trend and the PACF has a positive spike at lag 1 and the ACF has a spike at 1 which signals an ARMA(1, 1) in the non-seasonal part of the model. Therefore we start by fitting the following model: $\text{SARIMA}(1,0,1)(0,0,1)_7$ model. Models are iteratively fit adding orders based on the ACF and PACF plots those plots show stationarity. We finally end up with a $\text{SARIMA}(2,0,1)(1,0,1)_7$ model after some other excluded intermediate steps.  The estimation is done with an CSS-ML method.
+From the plots of $z_t$, we see that the mean appears to be stationary but there is evidence of seasonality. The ACF shows spikes at lag 6 and the PACF shows also spikes at lag 7, that decay to 0. This is evidence of weekly seasonality; therefore, we take a seasonal difference of 7 and then analyse $z_t-z_{t-7}$. This plot shows a spike in the ACF at lag 7 only and decaying spikes in the PACF at 7, this indicates that we have somewhat dealt with the seasonality by differencing. There is no evidence of a trend so $d = D = 0$. The seasonally differenced ACF plot also indicates a $MA(1)_7$ trend and the PACF has a positive spike at lag 1 and the ACF has a spike at 1 which signals an ARMA(1, 1) in the non-seasonal part of the model. Therefore we start by fitting the following model: $\text{SARIMA}(1,0,1)(0,0,1)_7$ model. Models are iteratively fit adding orders based on the ACF and PACF plots those plots show stationarity. We finally end up with a $\text{SARIMA}(2,0,1)(1,0,1)_7$ model after some other excluded intermediate steps.  The estimation is done with an CSS-ML method.
 
+```{r}
+#| code-fold: true
+#| code-summary: "Show residual diagnostics for SARIMA Model Building Process"
+
+# Build a number of Sarima models
+
+# Try SARIMA(1, 0, 1)(0, 0, 1) and then other SARIMA's
+sarima.101 <- Arima(crash.train$z, order = c(1, 0, 1), 
+                seasonal = list(order = c(0, 0, 1), period = 7), method = "ML", )
+sarima.101.101 <- Arima(crash.train$z, order = c(1, 0, 1), 
+                seasonal = list(order = c(1, 0, 1), period = 7), method = "ML", )
+sarima.201.101 <- Arima(crash.train$z, order = c(2, 0, 1), 
+                seasonal = list(order = c(1, 0, 1), period = 7), method = "ML", )
+sarima.final <- sarima.201.101
+
+
+```
 
 ::: callout-note
 ## Time Series Display for SARIMA Model Building Process (optional)
@@ -639,22 +692,81 @@ From the plots of $z_t$, we see that the mean appears to be stationary but there
 <summary>Click to expand time series diagnostic display</summary>
 
 ```{r}
+#| label: fig-tsdisp-s1
+#| fig-cap: "Time series display for residuals of $\\text{SARIMA}(1,0,1)(0, 0, 1)_7$."
+#| fig-subcap:
+#|   - "Time series of residuals"
+#|   - "Autocorrelation function"
+#|   - "Partial autocorrelation function"
+#| layout: [[100], [50, 50]]
 #| code-fold: true
-#| code-summary: "Show residual diagnostics for SARIMA Model Building Process"
+#| code-summary: "Show residual diagnostics for Time Trend Model"
+#| fig-width: 12
+#| fig-height: 6
+#| fig-align: "center"
 
+# 7 differenced:
+plot(crash.train$DATE, residuals(sarima.101), main = "", ylab = "Residuals", xlab = "Time", type = "o", 
+   pch = 20, cex = 0.5)
 
-# Try SARIMA(1, 0, 1)(0, 0, 1) and then other SARIMA's
-sarima.101 <- Arima(crash.train$z, order = c(1, 0, 1), 
-                seasonal = list(order = c(0, 0, 1), period = 7), method = "ML", )
-tsdisplay(residuals(sarima.101), ci.type = "ma", main = "Residuals of SARIMA(1,0,1)(0, 0,1)[7]")
-sarima.101.101 <- Arima(crash.train$z, order = c(1, 0, 1), 
-                seasonal = list(order = c(1, 0, 1), period = 7), method = "ML", )
-tsdisplay(residuals(sarima.101.101), ci.type = "ma", main = "Residuals of SARIMA(1,0,1)(1, 0,1)[7]")
-sarima.201.101 <- Arima(crash.train$z, order = c(2, 0, 1), 
-                seasonal = list(order = c(1, 0, 1), period = 7), method = "ML", )
-sarima.final <- sarima.201.101
+# ACF plot
+acf(residuals(sarima.101), main = "", ci.type = "ma")
+
+# PACF plot
+pacf(residuals(sarima.101), main = "")
+```
+
+```{r}
+#| label: fig-tsdisp-s2
+#| fig-cap: "Time series display for residuals of $\\text{SARIMA}(1,0,1)(1,0,1)_7$."
+#| fig-subcap:
+#|   - "Time series of residuals"
+#|   - "Autocorrelation function"
+#|   - "Partial autocorrelation function"
+#| layout: [[100], [50, 50]]
+#| code-fold: true
+#| code-summary: "Show residual diagnostics for Time Trend Model"
+#| fig-width: 12
+#| fig-height: 6
+#| fig-align: "center"
+
+# 7 differenced:
+plot(crash.train$DATE, residuals(sarima.101.101), main = "", ylab = "Residuals", xlab = "Time", type = "o", 
+   pch = 20, cex = 0.5)
+
+# ACF plot
+acf(residuals(sarima.101.101), main = "", ci.type = "ma")
+
+# PACF plot
+pacf(residuals(sarima.101.101), main = "")
+
+```
+
+```{r}
+#| label: fig-tsdisp-s3
+#| fig-cap: "Time series display for residuals of $\\text{SARIMA}(2,0,1)(1,0,1)_7$."
+#| fig-subcap:
+#|   - "Time series of residuals"
+#|   - "Autocorrelation function"
+#|   - "Partial autocorrelation function"
+#| layout: [[100], [50, 50]]
+#| code-fold: true
+#| code-summary: "Show residual diagnostics for Time Trend Model"
+#| fig-width: 12
+#| fig-height: 6
+#| fig-align: "center"
+
+# 7 differenced:
+plot(crash.train$DATE, residuals(sarima.final), main = "", ylab = "Residuals", xlab = "Time", type = "o", 
+   pch = 20, cex = 0.5)
+
+# ACF plot
+acf(residuals(sarima.final), main = "", ci.type = "ma")
+
+# PACF plot
+pacf(residuals(sarima.final), main = "")
+
 tsdisplay(residuals(sarima.final), ci.type = "ma", main = "Residuals of SARIMA(2,0,1)(1, 0,1)[7]")
-
 ```
 
 </details>
@@ -666,7 +778,7 @@ tsdisplay(residuals(sarima.final), ci.type = "ma", main = "Residuals of SARIMA(2
 #| tbl-cap: "AIC of Various SARIMA models"
 
 aic.sarima <- data.frame(sarima.101 = sarima.101$aic, sarima.101.101$aic, sarima.201.101$aic)
-colnames(aic.sarima) <- c("ARIMA(1,0,1)(0,0,1)[7]", "ARIMA(1,0,1)(1,0,1)[7]", "ARIMA(2,0,1)(1,0,1)[7]")
+colnames(aic.sarima) <- c("SARIMA(1,0,1)(0,0,1)[7]", "SARIMA(1,0,1)(1,0,1)[7]", "SARIMA(2,0,1)(1,0,1)[7]")
 
 aic.sarima$row <- "AIC"
 
