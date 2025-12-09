@@ -419,15 +419,16 @@ We observe that Saturday and Sunday see a large negative marginal association wi
 #|   - "Time series of residuals"
 #|   - "Autocorrelation function"
 #|   - "Partial autocorrelation function"
-#| layout: [[1], [2, 3]]
+#| layout: [[100], [50, 50]]
 #| code-fold: true
 #| code-summary: "Show residual diagnostics for Time Trend Model"
 #| fig-width: 12
 #| fig-height: 6
 #| fig-align: "center"
 
-# Time series plot
-plot(crash.train$z.r, main = "", ylab = "Residuals", xlab = "Time")
+# Time series plots, below are setup to closely mimic output of tsdisplay but with quarto functionality
+plot(crash.train$DATE, crash.train$z.r, main = "", ylab = "Residuals", xlab = "Time", type = "o", 
+   pch = 20, cex = 0.5)
 
 # ACF plot
 acf(crash.train$z.r, main = "", ci.type = "ma")
