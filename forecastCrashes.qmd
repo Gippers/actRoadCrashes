@@ -19,15 +19,18 @@ library(forecast)
 library(lubridate)
 library(readxl)
 library(patchwork)
-library(sandwich) # Account for seial autocorrelation in errors
+library(sandwich) # Account for serial autocorrelation in errors
 library(gt)
 library(plotly)
 ```
 
 # Introduction
 
-Every day in the Australian Capital Territory (ACT), it is estimated that there are nearly 1 million car trips [@transportcanberraACTTRANSPORTSTRATEGY2020]. Unfortunately, a small proportion of those daily car trips end in accidents. This report will apply various time series modelling approaches to model the number of daily road crashes in the ACT from the 1 January 2015 to 31 December 2019. The aim of the report is to determine the best estimation technique to produce the most accurate prediction of ACT daily car crashes. The resulting model can be applied to predict the trend in future car crashes in the ACT as well as understand patterns in the prevalence of road accidents in the ACT.
-The data used for this report was collected by the AFP Crash Report Form, and collected from the ACT Open Data Portal as at 30 April 2025 [@actgovernmentACTRoadCrash2025]. All crashes in the ACT must be reported to police within 24 hours, unless attended by police [@australianfederalpoliceCRASHREPORTING2025]. It is worth noting then, that this may under report serious road accidents, which would likely be attended by police. Therefore, we are likely measuring moderate and minor road accidents. This includes all crashes by users, drivers, cyclists, pedestrians and motorcyclists on roads, paths and other road related areas involving pedestrians or cyclists. All crash incidents are aggregated by day to transform the dataset into a daily time series. Therefore, the time series measures daily road crashes in the ACT reported through the AFP crash report system, hereafter referred to as ACT road crashes. This report limited the timeline of the data from 2015 to 2019 to model the data without the presence of the COVID lockdowns skewing the result. 
+Every day in the Australian Capital Territory (ACT), it is estimated that there are nearly 1 million car trips [@transportcanberraACTTRANSPORTSTRATEGY2020]. Unfortunately, a small proportion of these trips end in accidents. This report will apply various time series modelling approaches to forecast the number of daily road crashes in the ACT from the 1 January 2015 to 31 December 2019. The purpose of this report is to compare the accuracy of multiple univariate forecasting models for predicting car crashes in the ACT. The resulting model can be applied to predict the trend in future  as well as understand patterns in the prevalence of road accidents in the ACT.
+
+The data used for this report was collected by the AFP Crash Report Form, and collected from the ACT Open Data Portal as at 30 April 2025 [@actgovernmentACTRoadCrash2025]. All crashes in the ACT must be reported to the police within 24 hours, unless attended by police [@australianfederalpoliceCRASHREPORTING2025]. It is worth noting then, that this may under report serious road accidents, which would likely be attended by police. Therefore, we are likely measuring moderate and minor road accidents. This includes all crashes by users, drivers, cyclists, pedestrians and motorcyclists on roads, paths and other road related areas involving pedestrians or cyclists. All crash incidents are aggregated by day to transform the dataset into a daily time series. Therefore, the time series measures daily road crashes in the ACT reported through the AFP crash report system, hereafter referred to as ACT road crashes. This report limited the timeline of the data from 2015 to 2019 to model the data without the presence of the COVID lockdowns skewing the result. 
+
+*This analysis was originally an university assignment, the purpose of which was to compare the accuracy of four forecasting models for a data set of your choice. Some of the choices made such as the forecasting models that were tried and the training/test split were requirements of that assignmnet. However, the results of the report still*
 
 ```{r}
 # TODO as part of the introduction, outline all the sections. This section, this section....
@@ -1166,7 +1169,7 @@ fig <- plot_ly(
 fig
 
 ```
-
+*Clicking on the model in the legend will filter the display for easier viewing.*
 
 ```{r}
 #| label: fig-pred-4weeks
@@ -1231,6 +1234,7 @@ fig <- plot_ly(
   )  
 fig
 ```
+*Clicking on the model in the legend will filter the display for easier viewing.*
 
 The required time series graph is a little difficult to interpret given the large number of data points so, an additional graph only looking at the first 28 days was included. The graph shows that neither of the time-trend models (aka SEACF or AIC) have an indistinguishable fit. The AIC and SEACF time-trend models appear to most accurately follow the peaks and troughs of the actual trend however, the SARIMA model also appears to do a decent job. The Auto Sarima model is too smoothed and appears to underfit the peaks and troughs of the data. This is the same conclusion as the $MSEP^{(T')}$ which makes sense as the accuracy measure is the mean squared distance to the true point. $MSEP^{(T')}$ can be inaccurate however when there are lots of large outliers, so the $MSEP^{(T')}$. In our case however, we didn’t see more than 10 outliers for either trend, so it is understandable that $MSEP^{(T')}$ matches the findings of the graph.
 
