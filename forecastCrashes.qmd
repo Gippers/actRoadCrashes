@@ -1132,11 +1132,17 @@ msep_results <- sapply(pred_cols, function(col)
 
 msep_results <- as.data.table(as.list(msep_results))
 
-colnames(msep_results) <- c("naive", "Time-Trend ARMA(0, 1)", "Time-Trend ARMA(1, 0)", "SARIMA(2, 0, 1)(1, 0, 1)[7]", "Auto SARIMA(1, 0, 0)(2, 0, 0)[7]")
+msep_results[, row := md("$\\text{MSEP}^{(T')}$")]
 
-msep_results[, row :=  "MSEP^(T')"]
-
-gt(msep_results, rowname_col = "row")
+gt(msep_results, rowname_col = "row"
+) |>
+  fmt_markdown(columns = stub()) |>
+    cols_label(
+    pred.seacf = "Time-Trend ARMA(0, 1)", 
+    pred.aic = "Time-Trend ARMA(1, 0)", 
+    pred.sar = md("$\\text{SARIMA}(2,0,1)(1,0,1)_7$"), 
+    pred.asar = md("$\\text{SARIMA}(1,0,0)(2,0,0)_7$")
+  )
 
 ```
  
