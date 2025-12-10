@@ -810,9 +810,8 @@ Let’s now fit and estimate this model, note we will use a mean as there is no 
 
 ```{r}
 #| label: tbl-sarima-est
-#| tbl-cap: "Estimates for the SARIMA(2,0,1)(1,0,1)[7] model"
+#| tbl-cap: "Estimates for the $\\text{SARIMA}(2,0,1)(1,0,1)_7$ model"
 
-# TODO up to here
 # Table for the samrima
 # pvalues using a z-test
 se.s <- sqrt(diag(sarima.final$var.coef))
@@ -820,7 +819,8 @@ pv.s <- (pnorm(abs(sarima.final$coef / se.s), lower.tail = F)) * 2
 s.table <- data.frame(estimate = sarima.final$coef, 
                                 se = se.s, p.values = pv.s)
 s.table <- round(s.table, digits = 4)
-s.table$row <- rownames(s.table)                   
+s.table$row <- rownames(s.table)
+colnames(s.table) <- c("Estimate", "Standard Error", "P-Value", "row")
 gt(s.table, rowname_col = "row")
 ```
 
@@ -843,7 +843,8 @@ Whilst the SARIMA process above found a reasonable model, there may be a better 
 #| tbl-cap: "Estimate for Seasonal Auto ARIMA Model"
 
 # Fit a SARIMA model
-a.sarima <- auto.arima(ts(crash.train$z, frequency = 7), max.p = 7, max.q = 7, max.order = 7, trace = T, seasonal = T)
+a.sarima <- auto.arima(ts(crash.train$z, frequency = 7), max.p = 7, max.q = 7, max.order = 7,
+   trace = F, seasonal = T)
 
 # pvalues using a z-test
 se.aa <- sqrt(diag(a.sarima$var.coef))
@@ -852,7 +853,8 @@ as.table <- data.frame(estimate = a.sarima$coef,
                                 se = se.aa, p.values = pv.aa)
 
 as.table <- round(as.table, digits = 4)
-as.table$row <- rownames(as.table)                   
+as.table$row <- rownames(as.table)   
+colnames(as.table) <- c("Estimate", "Standard Error", "P-Value", "row")                
 gt(as.table, rowname_col = "row")
 
 ```
@@ -869,10 +871,29 @@ This is an odd choice by the `auto.arima` function as the residuals of this mode
 <summary>Click to expand time series diagnostic display</summary>
 
 ```{r}
+#| label: fig-tsdisp-aa
+#| fig-cap: "Time series display for residuals of $\\text{SARIMA}(1,0,0)(2, 0, 0)_7$."
+#| fig-subcap:
+#|   - "Time series of residuals"
+#|   - "Autocorrelation function"
+#|   - "Partial autocorrelation function"
+#| layout: [[100], [50, 50]]
 #| code-fold: true
-#| code-summary: "Show residual diagnostics for SARIMA Model Building Process"
+#| code-summary: "Show residual diagnostics for Time Trend Model"
+#| fig-width: 12
+#| fig-height: 6
+#| fig-align: "center"
 
-tsdisplay(residuals(a.sarima), ci.type = "ma", main = "Residuals of SARIMA(1,0,0)(2, 0, 0)[7]")
+# 7 differenced:
+plot(crash.train$DATE, residuals(a.sarima), main = "", ylab = "Residuals", xlab = "Time", type = "o", 
+   pch = 20, cex = 0.5)
+
+# ACF plot
+acf(residuals(a.sarima), main = "", ci.type = "ma")
+
+# PACF plot
+pacf(residuals(a.sarima), main = "")
+
 
 ```
 
