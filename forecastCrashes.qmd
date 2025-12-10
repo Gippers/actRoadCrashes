@@ -913,14 +913,29 @@ model_diagnostics <- function(model)
 {
     # Given ar ARMA model produces model diagnostic plots
     # standardized resiuals, ACF and pvalues
-    tsdiag(model, gof.lag = 21)
+    
+    # Plot 1: Standardized residuals
+    plot(residuals(model), type = "h", ylab = "Standardized Residuals", 
+        main = "Standardized Residuals")
+    abline(h = 0)
+
+    # Plot 2: ACF of residuals
+    acf(residuals(model), main = "ACF of Residuals")
+
+    # Plot 3: Ljung-Box p-values
+    lag_max <- 10
+    p_values <- sapply(1:lag_max, function(i) 
+      Box.test(residuals(model), lag = i, type = "Ljung-Box")$p.value)
+    plot(1:lag_max, p_values, ylim = c(0, 1), ylab = "p-value", 
+        xlab = "Lag", main = "Ljung-Box p-values")
+    abline(h = 0.05, lty = 2, col = "blue")
     
     # Get residuals information
     train_additional_info <- crash.train %>%
         mutate(residuals = model$residuals) %>%
         mutate(fitted_values = model$fitted)
     
-    # QQplot
+    # Plot4: QQplot
     ggplot(train_additional_info, aes(sample = residuals)) +
         geom_qq() +
         geom_qq_line() +
