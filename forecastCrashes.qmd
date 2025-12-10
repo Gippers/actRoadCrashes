@@ -916,18 +916,18 @@ model_diagnostics <- function(model)
     
     # Plot 1: Standardized residuals
     plot(residuals(model), type = "h", ylab = "Standardized Residuals", 
-        main = "Standardized Residuals")
+        main = "")
     abline(h = 0)
 
     # Plot 2: ACF of residuals
-    acf(residuals(model), main = "ACF of Residuals")
+    acf(residuals(model), main = "")
 
     # Plot 3: Ljung-Box p-values
     lag_max <- 10
     p_values <- sapply(1:lag_max, function(i) 
       Box.test(residuals(model), lag = i, type = "Ljung-Box")$p.value)
     plot(1:lag_max, p_values, ylim = c(0, 1), ylab = "p-value", 
-        xlab = "Lag", main = "Ljung-Box p-values")
+        xlab = "Lag", main = "")
     abline(h = 0.05, lty = 2, col = "blue")
     
     # Get residuals information
@@ -957,7 +957,9 @@ model_diagnostics <- function(model)
 #| fig-cap: "Residual Diagnostic Plots for Time Trend Model with ARMA(0, 1)"
 #| fig-ncol: 2
 #| fig-subcap: 
-#|   - "Residual Plots"
+#|   - "Standardized Residuals"
+#|   - "ACF of residuals"
+#|   - "Ljung-Box p-values" 
 #|   - "QQ Plot"
 # SEACF ARMA Model
 model_diagnostics(ARMA.SEACF.ML)
@@ -993,6 +995,8 @@ Examining the model diagnostics, we find the residuals do appear scattered aroun
 #|   - "QQ Plot"
 # SEACF ARMA Model
 # Time Trend ARMA model
+
+# TODO up to here
 model_diagnostics(ARMA.AIC.ML)
 # Get the outliers
 res.stand <- rstandard(ARMA.AIC.ML)
