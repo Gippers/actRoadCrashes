@@ -1143,7 +1143,9 @@ gt(msep_results, rowname_col = "row"
     pred.sar = md("$\\text{SARIMA}(2,0,1)(1,0,1)_7$"), 
     pred.asar = md("$\\text{SARIMA}(1,0,0)(2,0,0)_7$")
   )
-
+# TODO up to here
+# TODO check the formatting, might need to be all expressions to make it look ok.
+# TODO should this be vertical? 
 ```
  
 In terms of $MSEP^{(T')}$, the most accurate model is the Time-Trend ARMA(1,0) model (fit using AIC method) that marginally beats out the other Time-Trend. In truth, the accuracy between the two time trend models is nearly indistinguishable, which makes sense as the ARMA errors are only different for the first few time points then decay quickly to the mean. Notably, the Time-Trend model performs more than twice as good compared to a Naïve predictor.
