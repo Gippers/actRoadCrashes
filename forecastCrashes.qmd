@@ -966,7 +966,7 @@ model_diagnostics(ARMA.SEACF.ML)
 
 # Get the outliers
 res.stand <- rstandard(ARMA.SEACF.ML)
-toutlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
+tt01.outlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 
 # analyse the outliers
 #crash.train[DATE %in% toutlier]
@@ -977,7 +977,7 @@ toutlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 :::
 
 
-Examining the model diagnostics, we find the residuals do appear scattered around 0 with somewhat consistent variance around 0, which meets the linearity of errors and homoscedasticity assumptions. There does not appear to be any omitted variable bias. Furthermore, the variance assumption is met decently until the top part of the distribution which is a little heavy tailed. Given the amount of data though we shouldn't be too concerned as the CLT will help ensure that a slight variation of this isn't too problematic. Finally, the Ljung-Box test passes as no p-values cross the 0.05 threshold, signalling that there is no evidence of dependence of observations. This model has 7 outliers with absolute standardized residual greater than 3, this is on par given the number of observations we have. The outliers tend to be either school holidays or days in the middle of the week. Overall, we cannot remove these residuals but maybe there is some difference in traffic on  certain school holidays that could be better accounted for.  Overall, there is no evidence to suggest that this model egregiously violates the model diagnostics.
+Examining the model diagnostics, we find the residuals do appear scattered around 0 with somewhat consistent variance around 0, which meets the linearity of errors and homoscedasticity assumptions. There does not appear to be any omitted variable bias. Furthermore, the variance assumption is met decently until the top part of the distribution which is a little heavy tailed. Given the amount of data though we shouldn't be too concerned as the CLT will help ensure that a slight variation of this isn't too problematic. Finally, the Ljung-Box test passes as no p-values cross the 0.05 threshold, signalling that there is no evidence of dependence of observations. This model has 7 outliers with absolute standardized residual greater than 3, this is on par given the number of observations we have. The outliers (@tbl-out-tt01) tend to be either school holidays or days in the middle of the week. Overall, we cannot remove these residuals but maybe there is some difference in traffic on  certain school holidays that could be better accounted for.  Overall, there is no evidence to suggest that this model egregiously violates the model diagnostics.
 
 ## Time Trend with ARMA(1, 0) Residuals (AIC)
 
@@ -1520,4 +1520,14 @@ gt(seacf.table)
 aic.table <- round(aic.table, digits = 4)
 
 gt(aic.table)
+```
+
+## Appendix B {#sec-ap-b}
+
+```{r}
+#| label: tbl-out-tt01
+#| tbl-cap: "Outliers with standardized residual greater than 3 for the time trend model with ARMA(0, 1) residuals."
+
+
+gt(crash.train[DATE %in% tt01.outlier])
 ```
