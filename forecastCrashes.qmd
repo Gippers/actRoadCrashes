@@ -1427,14 +1427,28 @@ setcolorder(roll_results, c(4, 6, 2, 5, 3, 1))
 # Add asterix to the sarima model results
 roll_results[, sar := paste0(as.character(sar), "*")]
 
-roll_results[, roll :=  c("MSPE_1  with b_0.37=337", "MSPE_1  with b_0.64=674")]
+roll_results[roll == 1, roll :=  "$\\text{MSPE}_1 \\text{  with } b_{0.37}=337$"]
+roll_results[roll == 2, roll :=  "$\\text{MSPE}_1 \\text{ with }b_{0.64}=674$"]
 
 # Combine with old data
-roll_results <- rbind(msep_results, roll_results, use.names = F)
+colnames(roll_results) <- c("naive", "pred.seacf", "pred.aic",  "pred.sar", "pred.asar", "row")
+msep_results[, row := as.character(row)]
+roll_results <- rbind(msep_results, roll_results, use.names = F)#, ignore.attr=TRUE)
 
-colnames(roll_results) <- c("naive", "Time-Trend ARMA(0, 1)", "Time-Trend ARMA(1, 0)", "SARIMA(2, 0, 1)(1, 0, 1)[7]*", "Auto SARIMA(1, 0, 0)(2, 0, 0)[7]", "roll")
 
-gt(roll_results, rowname_col = "roll")
+
+#colnames(roll_results) <- c("naive", "Time-Trend ARMA(0, 1)", "Time-Trend ARMA(1, 0)", "SARIMA(2, 0, 1)(1, 0, #1)[7]*", "Auto SARIMA(1, 0, 0)(2, 0, 0)[7]", "roll")
+
+
+gt(roll_results, rowname_col = "row") |>
+  fmt_markdown(columns = stub()) |>
+    cols_label(
+    naive = "Naive",
+    pred.seacf = "Time-Trend ARMA(0, 1)", 
+    pred.aic = "Time-Trend ARMA(1, 0)", 
+    pred.sar = md("$\\text{SARIMA}(2,0,1)(1,0,1)_7$"), 
+    pred.asar = md("$\\text{SARIMA}(1,0,0)(2,0,0)_7$")
+  )
 
 ```
 
