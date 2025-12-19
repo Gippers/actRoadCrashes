@@ -28,18 +28,15 @@ library(plotly)
 
 Every day in the Australian Capital Territory (ACT), it is estimated that there are nearly 1 million car trips [@transportcanberraACTTRANSPORTSTRATEGY2020]. Unfortunately, a small proportion of these trips end in accidents. This report will apply various time series modelling approaches to forecast the number of daily road crashes in the ACT from the 1 January 2015 to 31 December 2019. The purpose of this report is to compare the accuracy of multiple univariate forecasting models for predicting car crashes in the ACT. The resulting model can be applied to predict the trend in future  as well as understand patterns in the prevalence of road accidents in the ACT.
 
-The data used for this report was collected by the AFP Crash Report Form, and collected from the ACT Open Data Portal as at 30 April 2025 [@actgovernmentACTRoadCrash2025]. All crashes in the ACT must be reported to the police within 24 hours, unless attended by police [@australianfederalpoliceCRASHREPORTING2025]. It is worth noting then, that this may under report serious road accidents, which would likely be attended by police. Therefore, we are likely measuring moderate and minor road accidents. This includes all crashes by users, drivers, cyclists, pedestrians and motorcyclists on roads, paths and other road related areas involving pedestrians or cyclists. All crash incidents are aggregated by day to transform the dataset into a daily time series. Therefore, the time series measures daily road crashes in the ACT reported through the AFP crash report system, hereafter referred to as ACT road crashes. This report limited the timeline of the data from 2015 to 2019 to model the data without the presence of the COVID lockdowns skewing the result. 
 
-*This analysis was originally an university assignment, the purpose of which was to compare the accuracy of four forecasting models for a data set of your choice. Some of the choices made such as the forecasting models that were tried and the training/test split were requirements of that assignmnet. However, the results of the report still*
+In @sec-char we perform some descriptive analysis of the data. @sec-model outlines the method used to fit the time series models and @sec-res contains the model diagnostics. The predictions accuracy of the time series models are explored for a train/test split and rolling window prediction in @sec-tt and @sec-roll respectively. Finally @sec-lim contains a discussion of the limitations of the models and @sec-conc states the conclusion.
 
-```{r}
-# TODO as part of the introduction, outline all the sections. This section, this section....
+*This analysis was originally an university assignment, the purpose of which was to compare the accuracy of four forecasting models for a data set of your choice. Some of the choices made such as the forecasting models that were tried and the training/test split were requirements of that assignment. However, the results of the report still*
 
-# Potentially also discuss the origins of this analysis.
-```
 
-# Data Characteristics
+# Data Characteristics {#sec-char}
 
+The data used for this report was collected by the AFP Crash Report Form, and collected from the ACT Open Data Portal as at 30 April 2025 [@actgovernmentACTRoadCrash2025]. All crashes in the ACT must be reported to the police within 24 hours, unless attended by police [@australianfederalpoliceCRASHREPORTING2025]. It is worth noting then, that this may under report serious road accidents, which would likely be attended by police. Therefore, we are likely measuring moderate and minor road accidents. This includes all crashes by users, drivers, cyclists, pedestrians and motorcyclists on roads, paths and other road related areas involving pedestrians or cyclists. All crash incidents are aggregated by day to transform the dataset into a daily time series. Therefore, the crash data measures daily road crashes in the ACT reported through the AFP crash report system, hereafter referred to as the number of ACT road crashes. For simplicity his report limited the timeline of the data from 2015 to 2019 to model the data without the presence of the COVID lock downs. 
 
 We will refer to the number of car crashes as $y_t$, where $t = 1, 2, ..., 1825, 1826$. The first day of data is 1 January 2015 and the last day is 31 December 2019.
 
@@ -357,7 +354,7 @@ fig
 
 As hypothesized, there is a strong pattern in the weekday data where Saturday and Sunday have the least crashes. The month plot mostly shows a significant difference only for January and maybe a slight difference for December. Holidays plot shows strong reduction in crashes, particularly for public holidays. These factors should be considered in a time-trend model.
 
-# Model Fitting and Interpretation
+# Model Fitting and Interpretation {#sec-model}
 
 ```{r}
 # Fit a time model z on the transformed data
@@ -898,7 +895,7 @@ pacf(residuals(a.sarima), main = "")
 </details>
 :::
 
-# Model Diagnostics
+# Model Diagnostics {#sec-res}
 
 Perform residual diagnostics to determine if the model from part 3 were adequately fit. Whilst I will consider outliers, no attempt will be made to assess high influence observations as cook’s distance is not valid with dependent error structures.
 
@@ -1074,7 +1071,7 @@ asar.outlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 
 Again, no issues with the constant variance assumption or linearity of assumption, however the residuals do not appear to be random scatter and hint at some pattern. The residuals look very normal, some tiny amount of light tails at the bottom of the distribution but overall the residuals are sufficiently normal. However, this fails the Box-Ljung test, indicating serial autocorrelation. The ACF plot shows persistent autocorrelation with lags 5, 10, 15 and so on, which does not decay to 0. Therefore, the auto.arima function selected a model that does not adequately meet the independence of observations assumption. This is a warning that auto.arima on its own is not sufficient to fit models. In addition, there are 5 outliers (@tbl-out-asar) (absolute standardized residual greater than 3) which include the date 2017-04-26 (discussed previously) and 4 public holidays that occur on a Friday. Again, indicating that the SARIMA model fails to adequately fit some of the public holidays. 
 
-# Data Prediction for Training Test Split
+# Data Prediction for Training Test Split {#sec-tt}
 
 To assess the accuracy of the fitted models, use the $MSEP^{(T')}$, which is the Mean Square Error of Prediction (MSEP) for the truncated one-step-ahead forecast for time $T+1,T+2, \ldots, T'-1, T'$. The $MSEP^{(T' )}$ is calcuated as:
 
@@ -1284,7 +1281,7 @@ Comparing the models, the auto SARIMA had the worst regression diagnostics and b
 
 
 
-# Rolling Window Prediction
+# Rolling Window Prediction {#sec-roll}
 
 The rolling window procedure estimates the one-step-ahead forecast for each point in the test dataset using the orders and parameters selected from the test dataset. Accuracy will then be measure as 
 
@@ -1448,7 +1445,7 @@ gt(roll_results, rowname_col = "row") |>
 
 ```
 
-*&#42The only was to get the SARIMA model to execute was the change the order from SARIMA(2,0,1) (1,0,1)_7 to SARIMA(2,0,1) (0,0,1)_7 as the more complex SARIMA model has non-finite finite-difference value and would not converge to a solution regardless of method used to fit it. The simpler model was fit for comparison purposes however, in some sense the fit was also null as the model failed to converge. Both options will be discussed.*
+*&#42 The only was to get the SARIMA model to execute was the change the order from SARIMA(2,0,1) (1,0,1)_7 to SARIMA(2,0,1) (0,0,1)_7 as the more complex SARIMA model has non-finite finite-difference value and would not converge to a solution regardless of method used to fit it. The simpler model was fit for comparison purposes however, in some sense the fit was also null as the model failed to converge. Both options will be discussed.*
 
 The $MSPE_1$ table above shows that the Time-Trend models once again perform by far the best. The difference in performance between the time-trend models again is nearly negligible, which likely indicates that either choice is appropriate, and any difference is down to chance. This time, the auto SARIMA model outperformed the SARIMA model (which also failed to converge with the original order and was altered so it would). It appears that the reduction in training data made the more complex SARIMA model unable to fit and less efficient when it was. 
 
@@ -1458,7 +1455,7 @@ The conclusions from the diagnostic in section 4 do not support the conclusions 
 
 
 
-# Limitations
+# Limitations {#sec-lim}
 
 There were several limitations to the modelling that may have improved the modelling procedure. For the time trend model,  School holidays don’t include private school holidays in the ACT which may underestimate lower traffic flows. In addition, no data is available to understand the holiday making trends of people without kids, which may also affect traffic flow. Potentially, a VARIMA model that had as a predictor the daily traffic flow in Canberra could better capture the variation in persons travelling. In addition, some outliers were observed for higher crashes on the day following a public holiday. This is likely because this becomes the new “Monday” of the week. Further factors could be added into the model to control for this. Furthermore, the Time trend model assumes that the seasonal parameters have a constant association over time, other methods weight the factors such that more recent observed affects have greater weight, which could better reflect changed in effects over time. None of the models account for events such as Summernats or music festivals which could further improve forecast accuracy.
 The forecast errors were not considered in this analysis. Further analysis should look at the forecast errors and asses a metric like the Pinball Loss to assess the accuracy of the prediction intervals. The SARIMA models only had a weekly difference, but there was some evidence as well of monthly seasonality. A better method would consider this for the SARIMA models; however, calendar differences make yearly or monthly differencing tricky with daily data. The SARIMA models saw large outliers on public holidays, including factor variables in the SARIMA model to adjust for this could lead to large improvements in the accuracy of the SARIMA models. Finally, a key limitation of this model is that we assume that the AFP reported crashes are an accurate reflection of the number of crashes in the ACT. The observed trends for example could be a related to people propensity to report rather than an actual trend in the data.
@@ -1482,7 +1479,7 @@ The forecast errors were not considered in this analysis. Further analysis shoul
 # TODO future section: Look into how covid affected road accidents, using an ITR type design.
 ```
 
-# Conclusion
+# Conclusion {#sec-conc}
 
 This report fit four time series model to the ACT crash data from 1 January 2015 to 31 December 2019. The best model was found to be a Time-Trend model that fit either ARMA(1, 0) or ARMA(0, 1) errors. Whilst simpler to fit, the SARIMA models were found to less accurate and, in some cases, unable to be fit. Some trends that were discovered in the data is that the most car accidents occur on Mondays. Public Holidays, School Holidays and December sees a marked decrease in the frequency of ACT road crashes.
 
@@ -1545,7 +1542,6 @@ gt(aic.table)
 # Keep only the following columbns
 keep.cols <- colnames(crash.train)[c(1, 2, 4, 5, 8, 14)]
 
-# TODO format header of this outlier table
 gt(crash.train[DATE %in% tt01.outlier, ..keep.cols]) |>
   fmt_markdown(columns = stub()) |>
     cols_label(
