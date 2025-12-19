@@ -1542,22 +1542,52 @@ gt(aic.table)
 #| label: tbl-out-tt01
 #| tbl-cap: "Outliers with standardized residual greater than 3 for the time trend model with ARMA(0, 1) residuals."
 
+# Keep only the following columbns
+keep.cols <- colnames(crash.train)[c(1, 2, 4, 5, 8, 14)]
+
 # TODO format header of this outlier table
-gt(crash.train[DATE %in% tt01.outlier])
+gt(crash.train[DATE %in% tt01.outlier, ..keep.cols]) |>
+  fmt_markdown(columns = stub()) |>
+    cols_label(
+    DATE ="DATE",
+    NUM_CRASHES = "Number of Crashes", 
+    day = "Day of Week", 
+    month = "Month of Year", 
+    holiday = "Holiday",
+    z.r = "Standardized Residual"
+  )
 ```
 
 ```{r}
 #| label: tbl-out-tt10
 #| tbl-cap: "Outliers with standardized residual greater than 3 for the time trend model with ARMA(1, 0) residuals."
 
-gt(crash.train[DATE %in% tt10.outlier])
+gt(crash.train[DATE %in% tt10.outlier, ..keep.cols]) |>
+  fmt_markdown(columns = stub()) |>
+    cols_label(
+    DATE ="DATE",
+    NUM_CRASHES = "Number of Crashes", 
+    day = "Day of Week", 
+    month = "Month of Year", 
+    holiday = "Holiday",
+    z.r = "Standardized Residual"
+  )
 ```
 
 ```{r}
 #| label: tbl-out-tsar
 #| tbl-cap: "Outliers with standardized residual greater than 3 for Seasonal ARIMA Model $\\text{SARIMA}(2,0,1) (1,0,1)_7$."
 
-gt(crash.train[DATE %in% tsar.outlier])
+gt(crash.train[DATE %in% tsar.outlier, ..keep.cols]) |>
+  fmt_markdown(columns = stub()) |>
+    cols_label(
+    DATE ="DATE",
+    NUM_CRASHES = "Number of Crashes", 
+    day = "Day of Week", 
+    month = "Month of Year", 
+    holiday = "Holiday",
+    z.r = "Standardized Residual"
+  )
 ```
 
 
@@ -1565,5 +1595,14 @@ gt(crash.train[DATE %in% tsar.outlier])
 #| label: tbl-out-asar
 #| tbl-cap: "Outliers with standardized residual greater than 3 for seasonal auto ARIMA model $\\text{SARIMA}(1,0,0)(2,0,0)_7."
 
-gt(crash.train[DATE %in% asar.outlier])
+gt(crash.train[DATE %in% asar.outlier, ..keep.cols]) |>
+  fmt_markdown(columns = stub()) |>
+    cols_label(
+    DATE ="DATE",
+    NUM_CRASHES = "Number of Crashes", 
+    day = "Day of Week", 
+    month = "Month of Year", 
+    holiday = "Holiday",
+    z.r = "Standardized Residual"
+  )
 ```
