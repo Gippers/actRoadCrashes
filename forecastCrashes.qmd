@@ -1138,14 +1138,12 @@ gt(msep_results, rowname_col = "row"
 ) |>
   fmt_markdown(columns = stub()) |>
     cols_label(
-    pred.seacf = "Time-Trend ARMA(0, 1)", 
-    pred.aic = "Time-Trend ARMA(1, 0)", 
+    naive = md("$\\text{Naive}$"),
+    pred.seacf = md("$\\text{Time-Trend ARMA}(0, 1)$"), 
+    pred.aic = md("$\\text{Time-Trend ARMA}(1, 0)$"), 
     pred.sar = md("$\\text{SARIMA}(2,0,1)(1,0,1)_7$"), 
     pred.asar = md("$\\text{SARIMA}(1,0,0)(2,0,0)_7$")
   )
-# TODO up to here
-# TODO check the formatting, might need to be all expressions to make it look ok.
-# TODO should this be vertical? 
 ```
  
 In terms of $MSEP^{(T')}$, the most accurate model is the Time-Trend ARMA(1,0) model (fit using AIC method) that marginally beats out the other Time-Trend. In truth, the accuracy between the two time trend models is nearly indistinguishable, which makes sense as the ARMA errors are only different for the first few time points then decay quickly to the mean. Notably, the Time-Trend model performs more than twice as good compared to a Naïve predictor.
@@ -1153,8 +1151,6 @@ In terms of $MSEP^{(T')}$, the most accurate model is the Time-Trend ARMA(1,0) m
 ```{r}
 #| label: fig-pred
 #| fig-cap: "Model Test Prediction vs Actual for testing dataset"
-
-# TODO better colours
 fig <- plot_ly(
   crash.test,
   type = 'scatter',
@@ -1167,27 +1163,27 @@ fig <- plot_ly(
 ) %>%
   add_lines(
     x = ~DATE, y = ~pred.seacf, name = "Time Trend with MA(1) residuals (SEACF)",
-    line = list(color = "lightblue", dash = "dash"), 
+    line = list(color = "#1F4E79", dash = "dash"), 
     hovertemplate = "<br>Time Trend with MA(1) residuals: %{y:.2f}<extra></extra>"
   ) %>% 
   add_lines(
     x = ~DATE, y = ~pred.aic, name = "Time Trend with AR(1) residuals (AIC)",
-    line = list(color = "blue", dash = "dash"), 
+    line = list(color = "#3498DB", dash = "dash"), 
     hovertemplate = "<br>Time Trend with AR(1) residuals: %{y:.2f}<extra></extra>"
   ) %>%
      add_lines(
     x = ~DATE, y = ~pred.sar, name = "SARIMA Model",
-    line = list(color = "orange", dash = "dash"), 
+    line = list(color = "#F39C12", dash = "dash"), 
     hovertemplate = "<br>SARIMA Model: %{y:.2f}<extra></extra>"
   ) %>%
      add_lines(
     x = ~DATE, y = ~pred.asar, name = "Auto Sarima Model",
-    line = list(color = "red2", dash = "dash"), 
+    line = list(color = "#E74C3C", dash = "dash"), 
     hovertemplate = "<br>Auto Sarima Model: %{y:.2f}<extra></extra>"
   ) %>%
   add_lines(
     x = ~DATE, y = ~naive, name = "Naive",
-    line = list(color = "green", dash = "dash"), 
+    line = list(color = "#18BC9C", dash = "dash"), 
     hovertemplate = "<br>Naive: %{y:.2f}<extra></extra>"
   ) %>%
   layout(
@@ -1231,29 +1227,29 @@ fig <- plot_ly(
   line = list(color = "black"),
   hovertemplate = "<br>Crashes: %{y:.2f}<extra></extra>"
 ) %>%
-  add_lines(
+   add_lines(
     x = ~DATE, y = ~pred.seacf, name = "Time Trend with MA(1) residuals (SEACF)",
-    line = list(color = "lightblue", dash = "dash"), 
+    line = list(color = "#1F4E79", dash = "dash"), 
     hovertemplate = "<br>Time Trend with MA(1) residuals: %{y:.2f}<extra></extra>"
   ) %>% 
   add_lines(
     x = ~DATE, y = ~pred.aic, name = "Time Trend with AR(1) residuals (AIC)",
-    line = list(color = "blue", dash = "dash"), 
+    line = list(color = "#3498DB", dash = "dash"), 
     hovertemplate = "<br>Time Trend with AR(1) residuals: %{y:.2f}<extra></extra>"
   ) %>%
      add_lines(
     x = ~DATE, y = ~pred.sar, name = "SARIMA Model",
-    line = list(color = "orange", dash = "dash"), 
+    line = list(color = "#F39C12", dash = "dash"), 
     hovertemplate = "<br>SARIMA Model: %{y:.2f}<extra></extra>"
   ) %>%
      add_lines(
     x = ~DATE, y = ~pred.asar, name = "Auto Sarima Model",
-    line = list(color = "red2", dash = "dash"), 
+    line = list(color = "#E74C3C", dash = "dash"), 
     hovertemplate = "<br>Auto Sarima Model: %{y:.2f}<extra></extra>"
   ) %>%
   add_lines(
     x = ~DATE, y = ~naive, name = "Naive",
-    line = list(color = "green", dash = "dash"), 
+    line = list(color = "#18BC9C", dash = "dash"), 
     hovertemplate = "<br>Naive: %{y:.2f}<extra></extra>"
   ) %>%
   layout(
@@ -1443,9 +1439,9 @@ roll_results <- rbind(msep_results, roll_results, use.names = F)#, ignore.attr=T
 gt(roll_results, rowname_col = "row") |>
   fmt_markdown(columns = stub()) |>
     cols_label(
-    naive = "Naive",
-    pred.seacf = "Time-Trend ARMA(0, 1)", 
-    pred.aic = "Time-Trend ARMA(1, 0)", 
+    naive = md("$\\text{Naive}$"),
+    pred.seacf = md("$\\text{Time-Trend ARMA}(0, 1)$"), 
+    pred.aic = md("$\\text{Time-Trend ARMA}(1, 0)$"), 
     pred.sar = md("$\\text{SARIMA}(2,0,1)(1,0,1)_7$"), 
     pred.asar = md("$\\text{SARIMA}(1,0,0)(2,0,0)_7$")
   )
