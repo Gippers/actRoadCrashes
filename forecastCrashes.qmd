@@ -1,7 +1,7 @@
 ---
 title: "Temporal Analysis of Road Crashes in the Australian Capital Territory"
 author: "Thomas Martin"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "December 19, 2025"
 execute:
   dir: project
 bibliography: actCrashes.bib
