@@ -359,7 +359,7 @@ As hypothesized, @fig-box-seasonal shows that there was a significant difference
 
 # Model Fitting and Interpretation {#sec-model}
 
-This report will examine two different types of time series modelling methods for forecasting ACT daily road crashes. The first are time trend models, which effectively fit a regression model to the data. The advantage of this approach is that it is relatively simple and we can easily account for the seasonal components by including them as factor variables. However, using a regression model with time series data will almost always lead to the assumption of independence being violated as each point in the time series will have some dependence on previous time periods. To overcome this, ARIMA models will be used to model the residuals. In addition, Seasonal ARIMA (or SARIMA) models will also be fit to the ACT road crash data. SARIMA models are particularly well-suited for time series with seasonality because they can explicitly capture both the regular patterns that repeat at fixed intervals (like weekly or monthly cycles in crash data) and the underlying trends in the data simultaneously. In addition, packages exist for automatically fitting SARIMA models which simplifies the process of applying this model type.
+This report examined two different types of time series modelling methods for forecasting ACT daily road crashes. The first were time trend models, which simply fit a regression model to the data. The advantage of this approach is that it is relatively simple and  can easily account for the seasonal components by including them as factor variables. However, using a regression model with time series data will almost always lead to the assumption of independence being violated as each point in the time series will have some dependence on previous time periods. To overcome this, ARMA models were used to model the residuals. In addition, Seasonal ARIMA (or SARIMA) models were fit to the ACT road crash data. SARIMA models are particularly well-suited for time series data with seasonality because they can explicitly capture both the regular patterns that repeat at fixed intervals (like weekly or monthly cycles in crash data) and the underlying trends in the data simultaneously. In addition, packages exist for automatically fitting SARIMA models which simplifies the process of applying this model type.
 
 ```{r}
 # Fit a time model z on the transformed data
@@ -396,7 +396,7 @@ crash.train[, z.r := residuals(z.model)]
 
 ## Time Trend Model
 
-First, attempted to fit a linear time trend model to the transformed training data $z_t$. Note, a Poisson model was attempted on the untransformed data as the data is Poisson distributed however, the linear model fit on the transformed data was superior. The first model fit was: $M_1:z_t=β_0  + β_1 t_i+β_{2-7} day_i+β_{8-19} month_i+β_{20-23} holiday_i+ \nu_i$. Note that I chose not to fit cyclical day of week and month factors, this is because there is enough observations (912) to fit the more descriptive factor variables and, the marginal trend wasn’t particularly cyclical. This model had some day and months with similar marginal associations and time variables were insignificant, as expected from the trend plots. Days were grouped instead as: Sun, Mon, Tue-Wed, Thu-Fri and Sat and months as: Jan, Feb, Mar, Apr-May, June, July, Aug-Oct, Nov and Dec. A new model was fit with these reduced categories and the time factor removed: $M_2:z_t=β_0+β_{1-4} day_i+β_{5-12} month_i+β_{13-15} holiday_i+ \nu_i$. An Anova test was performed to see if any explanatory power was lost. The p-value of the test was 0.9997, so we failed to reject the null and find no evidence that the additional variables in M_1 are non-zero, and choose the model $M_2$. The results of the Anova test and a full table of $M_2$ is available in @sec-ap-a. 
+First, this report attempted to fit a linear time trend model to the transformed training data $z_t$. Note, a Poisson model was attempted on the untransformed data as the data is Poisson distributed however, the linear model fit on the transformed data was superior. The first model fit was: $M_1:z_t=β_0  + β_1 t_i+β_{2-7} day_i+β_{8-19} month_i+β_{20-23} holiday_i+ \nu_i$.  This model had some day and months with similar marginal associations and the time variable was insignificant, as expected given the stationary mean. Days were grouped instead as: Sun, Mon, Tue-Wed, Thu-Fri and Sat and months as: Jan, Feb, Mar, Apr-May, June, July, Aug-Oct, Nov and Dec. A new model was fit with these reduced categories and the time factor removed: $M_2:z_t=β_0+β_{1-4} day_i+β_{5-12} month_i+β_{13-15} holiday_i+ \nu_i$. An Anova test was performed to see if any explanatory power was lost. The p-value of the test was 0.9997, so we failed to reject the null and find no evidence that the additional variables in $M_1$ are non-zero, and choose the model $M_2$. The results of the Anova test and a full table of $M_2$ is available in @sec-ap-a. 
 
 $$
 \begin{aligned}
@@ -407,7 +407,7 @@ M_2 : z_t &= 3.5402 (0.1191)-0.7205 (0.0811)Sat -1.2200 (0.0768) Sun \\ 
 \end{aligned}
 $${#eq-M2}
 
-We observe that Saturday and Sunday see a large negative marginal association with road crashes, whilst Monday has a positive marginal association, whilst holding all other variable constant. The day of the week being Sunday compared to Monday, is associated on average with a $1.200$ decrease in the square root of the number of ACT Road crashes, holding all other variables constant. So it seems that there are less road crashes on the weekend (Saturday has a similar affect). The month of January stands out as having a large negative marginal association with ACT road crashes and school and public holiday have large negative marginal associations, in particular the public holidays have an association that is approximately three times larger than the school holidays. A public holiday compared to a non-public or school holiday day, is associated with on average a $1.9895$ decrease in the square root of the number of  ACT road crashes, holding all other variables constant. Note that $z_t$ is sqrt transformed when interpreting the above coefficients. An analysis of the residuals shows that the variance has stabilised, however there appears to be some serial autocorrelation of the residuals, potentially of the MA(1) order. These plots are available in the appendix. In addition, due to this dependence of errors, sandwich HAC errors were used for the standard estimates, a full regression output table is in Table C. To remove serial autocorrelation, lets use some ARMA models to model the residuals.
+We observed that Saturday and Sunday have a large negative marginal association with road crashes, whilst Monday had a positive marginal association, whilst holding all other variable constant. The day of the week being Sunday compared to Monday, is associated on average with a $1.200$ decrease in the square root of the number of ACT Road crashes, holding all other variables constant. So it seems that there are less road crashes on the weekend (Saturday had a similar affect). The month of January stands out as having a large negative marginal association with ACT road crashes and school and public holiday have large negative expected marginal associations, in particular the public holidays have an association that is approximately three times larger than the school holidays. A public holiday compared to a non-public or school holiday day, is associated with on average a $1.9895$ decrease in the square root of the number of  ACT road crashes, holding all other variables constant. Note that $z_t$ is square root transformed when interpreting the above coefficients. An analysis of the residuals showed that the variance had stabilised, however there appeared to be some serial autocorrelation of the residuals, potentially of the MA(1) order (see @fig-tsdisp-tt below). In addition, due to this dependence of errors, sandwich HAC errors were used for the standard estimates, @tbl-timetrend shows a full output of the regression model. To remove serial autocorrelation, some ARMA models would need to be applied to the residuals of the time trend model.
 
 ::: callout-note
 ## Time Series Display for Time Trend Model (optional)
@@ -445,9 +445,9 @@ As above, the residuals appear to demonstrate MA(1) or AR(1) autocorrelation
 :::
 
 
-### Time Trend with ARMA(0, 1) Residuals (SEACF)
+### Time Trend with $\text{ARMA}(0, 1)$ Residuals (SEACF)
 
-The ACF and PACF plot provide weak evidence of a simple ARMA(0, 1) trend in the residuals $\nu_t$. Lets perform a SEACF plot to estimate the order of an ARMA model fitted to these time-trend residuals, with a maximum order of p = 14 and q = 20.
+The ACF and PACF plot provided weak evidence of a simple $\text{ARMA}(0, 1)$ trend in the residuals $\nu_t$. Lets perform a SEACF plot to estimate the order of an ARMA model fitted to these time-trend residuals, with a maximum order of p = 14 and q = 20.
 
 ```{r}
 #| results: 'hide' # hide console output
@@ -502,7 +502,7 @@ gt_tbl |> cols_width(
 # TODO colour the triangle
 ```
 
-The largest triangle of zeros supports the idea that an ARMA(0, 1) model is a good choice. Note that ARMA(1, 1) is another interesting choice, however you lose the top row of 0’s, in exchange for a diagonal of 0’s with one X. Therefore, the ARMA(0, 1) is the preferred vertex point, so lets fit this model using Maximum Likelihood estimation and without a mean because the time trend model already contains a mean.
+The largest triangle of zeros supports the idea that an $\text{ARMA}(0, 1)$ model was a good choice for modelling the residuals. Note that $\text{ARMA}(1, 1)$) is another potentially choice however, you lose the top row of 0’s in exchange for a diagonal of 0’s with one X. Therefore, $\text{ARMA}(0, 1)$ was the preferred vertex point, so this model was fit to the residuals using Maximum Likelihood estimation and without a mean because the time trend model already contains a mean.
 
 ```{r}
 # Actual fitting of the MA model to the residuals
@@ -518,7 +518,7 @@ seacf.table <- data.frame(estimate = ARMA.SEACF.ML$coef,
 
 ```
 
-The formula for the ARMA(0,1) model is: $\nu_t=0.1672(0.03226) \epsilon_{t-1}+ \epsilon_t$ (table of estimates available in @tbl-tt-seacf). And then the final time trend model with ARMA(0,1) residuals is:
+The formula for the $\text{ARMA}(0, 1)$ model is: $\nu_t=0.1672(0.03226) \epsilon_{t-1}+ \epsilon_t$ (table of estimates available in @tbl-tt-seacf). And then the final time trend model with ARMA(0,1) residuals is:
 
 $$
 \begin{aligned}
@@ -531,12 +531,12 @@ z_t &= 3.5402 (0.1191)- 0.7205 (0.0811) Sat - 1.2200 (0.0768) Sun + 0.32
 \end{aligned}
 $${#eq-M3}
 
-Overall, the interpretation of this model is the same as the time-trend model but without serial autocorrelation. We estimate that the error of the time-trend model follows a moving average ARMA(0, 1) process, however this is the only additional interpretation we can make.  No linear trend with time exists in the data, and the fluctuations appear to mostly be driven by seasonal trends and public holidays.
+Overall, the interpretation of this model was the same as the time-trend model but without serial autocorrelation. We estimated that the error of the time-trend model followed a moving average $\text{ARMA}(0, 1)$ process, however this is the only additional interpretation we can make. No linear trend with time was found and the fluctuations appeared to mostly be driven by seasonal trends and public holidays.
 
 
-### Time Trend with ARMA(1, 0) Residuals (AIC)
+### Time Trend with $\text{ARMA}(1, 0)$ Residuals (AIC)
 
-In addition to the SEACF, lets also try another order estimation technique for $\nu_t$. Particularly as the SEACF plot was not definite on the best vertex choice. Instead, we will fit all combinations of ARMA(p, q) up to order 7, and find the model with the smallest Alkaline Information Criteria (AIC). 7 is used as the maximum order as strong seasonality at this order was detected and the SEACF indicates the best choice is somewhere in this range. The table of fitted AIC is below in @tbl-tt-aic, the smallest AIC was found for the ARMA(1, 0) model with an AIC of 1734.405. This was closely followed by ARMA(0, 1) model with AIC of 1734.747. 
+In addition to the SEACF, another method was employed to estimate the optimal ARMA model to fit to the time trend residuals $\nu_t$. Particularly as the SEACF plot was not definite on the best vertex choice. All combinations of $\text{ARMA}(p, q)$ up to order 7 were fit and the model with the smallest Alkaline Information Criteria (AIC) was selected. 7 was used as the maximum order as evidence was found of strong seasonality at this order. The table of fitted AIC is below in @tbl-tt-aic, the smallest AIC was found for the $\text{ARMA}(1, 0)$ model with an AIC of $1734.405$. This was closely followed by $\text{ARMA}(0, 1)$ model with AIC of $1734.747$. 
 ```{r}
 #| label: tbl-tt-aic
 #| tbl-cap: "Estimated AIC of Time Trend model with different ARMA models for modelling the residuals. Rows contain order of p, columns contain order of q."
@@ -598,7 +598,7 @@ aic.table <- data.frame(estimate = ARMA.AIC.ML$coef,
 # TODO include this table somehow
 ```
 
-Therefore, we fit the following AR(1) model to $\nu_t=0.1690(0.03277) \nu_{t-1}+ \epsilon_t$ (see table based output in @tbl-tt-aic), which was significant to at least the 95% confidence level (output table available in appendix). Then the final model is a time-trend model with ARMA(1, 0) residuals:
+Therefore, the following $\text{AR}(1)$ model was fit to $\nu_t=0.1690(0.03277) \nu_{t-1}+ \epsilon_t$ (see table based output in @tbl-tt-aic), which was significant to at least the 95% confidence level (output table available in appendix). Then the final model was a time-trend model with $\text{ARMA}(1, 0)$ residuals:
 
 $$
 \begin{aligned}
@@ -611,10 +611,13 @@ z_t &= 3.5402 (0.1191)- 0.7205 (0.0811) Sat - 1.2200 (0.0768) Sun + 0.32
 \end{aligned}
 $${#eq-M4}
 
-Again, there isn’t any additional interpretation outside of the time-trend model besides saying that the structure of the error of the time-trend model follows an autoregressive AR(1) pattern.
+Again, there isn't any additional interpretation outside of the time-trend model besides saying that the structure of the error of the time-trend model followed an autoregressive $\text{AR}(1)$ pattern.
 
 ## Seasonal ARIMA Model of $Z_t$
 
+```{r}
+# TODO up to editing text here
+```
 We appear to have quite successfully fit two time-trend models. Let’s see if a Seasonal Autoregressive Integrated Moving Average (SARIMA or Seasonal ARIMA) model can outperform these time-trend models. The SARIMA approach has the benefit of being much simpler to fit as less data preprocessing is necessary, and you only need to fit one model. An ARIMA model will not be considered, as there is clear evidence of seasonality in the dataset. Analysis procedure here based on chapter 8 of forecasting principles and practice version 1 [@hyndmanForecastingPrinciplesPractice2021]. 
 
 ```{r}
