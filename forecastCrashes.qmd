@@ -315,8 +315,9 @@ fig
 
 
 
-## Seasonal Components
-My prior going into this analysis, is that road crashes will occur more frequently on days where there is the greatest volume of driving. This may run slightly contrary  to intuition which may be that long weekends have more accidents however, it is likely that there are more fatal accidents from long car drives rather than road crashes which is what we are attempting to measure. In the ACT, I hypothesize that workdays are the busiest days on the road as workers are commuting to work, businesses are receiving and sending deliveries and parents are taking their children to school. Therefore, I would expect that the ACT road crashes would vary depending on the day of the week, school holidays, public holidays, when workers tend to take leave and potentially the month of the year. I was able to use the ACT government website to get past information for public holidays and public school holidays [@Years; @governmentPublicHolidaysSchool2025].
+## Seasonal Components {#sec-seasonal}
+
+My prior going into this analysis was that road crashes would occur more frequently on days where there is greater volume of driving. This may run slightly contrary to intuition which may be that long weekends have more accidents however, it is likely that there are more fatal accidents from long car drives rather than road crashes which is what we are attempting to measure. In the ACT, I hypothesize that workdays are the busiest days on the road as workers are commuting to work, businesses are receiving and sending deliveries and parents are taking their children to school. Therefore, I would expect that the ACT road crashes would vary depending on the day of the week, school holidays, public holidays, when workers tend to take leave and potentially the month of the year. I was able to use the ACT government website to get past information for public holidays and public school holidays [@Years; @governmentPublicHolidaysSchool2025].
 
 
 
@@ -354,9 +355,11 @@ fig <- plot_ly(crash.train, y = ~NUM_CRASHES, color = ~holiday, type = "box") %>
 fig
 ```
 
-As hypothesized, there is a strong pattern in the weekday data where Saturday and Sunday have the least crashes. The month plot mostly shows a significant difference only for January and maybe a slight difference for December. Holidays plot shows strong reduction in crashes, particularly for public holidays. These factors should be considered in a time-trend model.
+As hypothesized, @fig-box-seasonal shows that there was a significant difference in crashes based on the day of the week, in particular Saturday and Sunday had significantly less crashes. The month plot mostly shows a significant difference only for January and maybe a slight difference for December. The holiday plot shows strong reduction in crashes, particularly for public holidays. These factors should be considered in a time-trend model.
 
 # Model Fitting and Interpretation {#sec-model}
+
+This report will examine two different types of time series modelling methods for forecasting ACT daily road crashes. The first are time trend models, which effectively fit a regression model to the data. The advantage of this approach is that it is relatively simple and we can easily account for the seasonal components by including them as factor variables. However, using a regression model with time series data will almost always lead to the assumption of independence being violated as each point in the time series will have some dependence on previous time periods. To overcome this, ARIMA models will be used to model the residuals. In addition, Seasonal ARIMA (or SARIMA) models will also be fit to the ACT road crash data. SARIMA models are particularly well-suited for time series with seasonality because they can explicitly capture both the regular patterns that repeat at fixed intervals (like weekly or monthly cycles in crash data) and the underlying trends in the data simultaneously. In addition, packages exist for automatically fitting SARIMA models which simplifies the process of applying this model type.
 
 ```{r}
 # Fit a time model z on the transformed data
@@ -389,14 +392,11 @@ crash.train[, z.r := residuals(z.model)]
 
 #plot(z.model)
 
-# TODO put a model table and residuals tbale here
-
-# TODO put the anove test of m1 and m2 in the appensix
 ```
 
 ## Time Trend Model
 
-First, we will attempt to fit a linear time trend model to the transformed training data $z_t$. Note, a Poisson model was attempted on the untransformed data as the data is Poisson distributed however, the linear model fit on the transformed data was superior. The first model fit was: $M_1:z_t=β_0  + β_1 t_i+β_{2-7} day_i+β_{8-19} month_i+β_{20-23} holiday_i+ \nu_i$. Note that I chose not to fit cyclical day of week and month factors, this is because there is enough observations (912) to fit the more descriptive factor variables and, the marginal trend wasn’t particularly cyclical. This model had some day and months with similar marginal associations and time variables were insignificant, as expected from the trend plots. Days were grouped instead as: Sun, Mon, Tue-Wed, Thu-Fri and Sat and months as: Jan, Feb, Mar, Apr-May, June, July, Aug-Oct, Nov and Dec. A new model was fit with these reduced categories and the time factor removed: $M_2:z_t=β_0+β_{1-4} day_i+β_{5-12} month_i+β_{13-15} holiday_i+ \nu_i$. An Anova test was performed to see if any explanatory power was lost. The p-value of the test was 0.9997, so we failed to reject the null and find no evidence that the additional variables in M_1 are non-zero, and choose the model $M_2$. The results of the Anova test and a full table of $M_2$ is available in @sec-ap-a. 
+First, attempted to fit a linear time trend model to the transformed training data $z_t$. Note, a Poisson model was attempted on the untransformed data as the data is Poisson distributed however, the linear model fit on the transformed data was superior. The first model fit was: $M_1:z_t=β_0  + β_1 t_i+β_{2-7} day_i+β_{8-19} month_i+β_{20-23} holiday_i+ \nu_i$. Note that I chose not to fit cyclical day of week and month factors, this is because there is enough observations (912) to fit the more descriptive factor variables and, the marginal trend wasn’t particularly cyclical. This model had some day and months with similar marginal associations and time variables were insignificant, as expected from the trend plots. Days were grouped instead as: Sun, Mon, Tue-Wed, Thu-Fri and Sat and months as: Jan, Feb, Mar, Apr-May, June, July, Aug-Oct, Nov and Dec. A new model was fit with these reduced categories and the time factor removed: $M_2:z_t=β_0+β_{1-4} day_i+β_{5-12} month_i+β_{13-15} holiday_i+ \nu_i$. An Anova test was performed to see if any explanatory power was lost. The p-value of the test was 0.9997, so we failed to reject the null and find no evidence that the additional variables in M_1 are non-zero, and choose the model $M_2$. The results of the Anova test and a full table of $M_2$ is available in @sec-ap-a. 
 
 $$
 \begin{aligned}
