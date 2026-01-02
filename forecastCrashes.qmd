@@ -317,7 +317,7 @@ fig
 
 ## Seasonal Components {#sec-seasonal}
 
-My prior going into this analysis was that road crashes would occur more frequently on days where there is greater volume of driving. This may run slightly contrary to intuition which may be that long weekends have more accidents however, it is likely that there are more fatal accidents from long car drives rather than road crashes which is what we are attempting to measure. In the ACT, I hypothesize that workdays are the busiest days on the road as workers are commuting to work, businesses are receiving and sending deliveries and parents are taking their children to school. Therefore, I would expect that the ACT road crashes would vary depending on the day of the week, school holidays, public holidays, when workers tend to take leave and potentially the month of the year. I was able to use the ACT government website to get past information for public holidays and public school holidays [@Years; @governmentPublicHolidaysSchool2025].
+My prior going into this analysis was that road crashes would occur more frequently on days where there is greater volume of driving. This may run slightly contrary to intuition which may be that long weekends have more accidents however, it is likely that there are more fatal accidents from long car drives rather than road crashes which is what we are attempting to measure. In the ACT, I hypothesize that workdays are the busiest days on the road as workers are commuting to work, businesses are receiving and sending deliveries and parents are taking their children to school. Therefore, I would expect that the ACT road crashes would vary depending on the day of the week, school holidays, public holidays, when workers tend to take leave and potentially the month of the year. I was able to use the ACT government website to get past information for public holidays and public school holidays [@ACTSchoolHolidays2026; @governmentPublicHolidaysSchool2025].
 
 
 
@@ -1480,7 +1480,7 @@ The forecast errors were not considered in this analysis. Further analysis shoul
 This report fit four time series models to the ACT crash data from 1 January 2015 to 31 December 2019. The best model was found to be a Time-Trend model with either $\text{ARMA}(1, 0)$ or $\text{ARMA}(0, 1)$ errors, which demonstrated superior predictive accuracy and model fit compared to alternatives. While simpler to fit, the SARIMA models were found to be overall less accurate predictors and less robust. The analysis revealed that the most car accidents occur on Mondays in the ACT, with Public Holidays, School Holidays, and December showing a marked decrease in road crash frequency, likely reflecting reduced commuter traffic during these periods.
 
 
-# Bibliography {-}
+# Bibliography
 
 ::: {#refs}
 :::
