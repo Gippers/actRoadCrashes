@@ -31,7 +31,7 @@ Every day in the Australian Capital Territory (ACT), it is estimated that there 
 
 In @sec-char we perform some descriptive analysis of the data. @sec-model outlines the method used to fit the time series models and @sec-res contains the model diagnostics. The predictions accuracy of the time series models are explored for a train/test split and rolling window prediction in @sec-tt and @sec-roll respectively. Finally @sec-lim contains a discussion of the limitations of the models and @sec-conc states the conclusion.
 
-*This analysis was originally an university assignment, the purpose of which was to compare the accuracy of four forecasting models learnt in the course for a data set of your choice. Therefore some choices made in this report were driven by requirement's of the assingment namely the choice of forecasting models and the training/test split.*
+*This analysis was originally an university assignment, the purpose of which was to compare the accuracy of four forecasting models learnt in the course for a data set of your choice. Therefore some choices made in this report were driven by requirement's of the assignment namely the choice of forecasting models and the training/test split.*
 
 
 # Data Characteristics {#sec-char}
@@ -598,7 +598,7 @@ aic.table <- data.frame(estimate = ARMA.AIC.ML$coef,
 # TODO include this table somehow
 ```
 
-Therefore, the following $\text{AR}(1)$ model was fit to $\nu_t=0.1690(0.03277) \nu_{t-1}+ \epsilon_t$ (see table based output in @tbl-tt-aic), which was significant to at least the 95% confidence level (output table available in appendix). Then the final model was a time-trend model with $\text{ARMA}(1, 0)$ residuals:
+Therefore, the following $\text{AR}(1)$ model was fit to $\nu_t=0.1690(0.03277) \nu_{t-1}+ \epsilon_t$ (see table based output in @tbl-tt-aic), which was significant to at least the 95% confidence level (see @tbl-est-aic). Then the final model was a time-trend model with $\text{ARMA}(1, 0)$ residuals:
 
 $$
 \begin{aligned}
@@ -611,14 +611,11 @@ z_t &= 3.5402 (0.1191)- 0.7205 (0.0811) Sat - 1.2200 (0.0768) Sun + 0.32
 \end{aligned}
 $${#eq-M4}
 
-Again, there isn't any additional interpretation outside of the time-trend model besides saying that the structure of the error of the time-trend model followed an autoregressive $\text{AR}(1)$ pattern.
+Again, there wasn't any additional interpretation outside of the time-trend model besides saying that the structure of the error of the time-trend model followed an autoregressive $\text{AR}(1)$ pattern.
 
 ## Seasonal ARIMA Model of $Z_t$
 
-```{r}
-# TODO up to editing text here
-```
-We appear to have quite successfully fit two time-trend models. Let’s see if a Seasonal Autoregressive Integrated Moving Average (SARIMA or Seasonal ARIMA) model can outperform these time-trend models. The SARIMA approach has the benefit of being much simpler to fit as less data preprocessing is necessary, and you only need to fit one model. An ARIMA model will not be considered, as there is clear evidence of seasonality in the dataset. Analysis procedure here based on chapter 8 of forecasting principles and practice version 1 [@hyndmanForecastingPrinciplesPractice2021]. 
+Having fit two time-trend models, we then aimed to determine whether Seasonal Autoregressive Integrated Moving Average (SARIMA or Seasonal ARIMA) models could outperform these time-trend models. The SARIMA approach has the benefit of being far simpler to fit as less data preprocessing was necessary. An ARIMA model will not be considered, as there was clear evidence of seasonality in the dataset. Analysis procedure here were based on chapter 8 of forecasting principles and practice version 1 [@hyndmanForecastingPrinciplesPractice2021]. 
 
 ```{r}
 #| label: fig-tsdisp-zt
@@ -669,7 +666,7 @@ acf(diff(crash.train$z, lag = 7), main = "", ci.type = "ma")
 pacf(diff(crash.train$z, lag = 7), main = "")
 ```
 
-From the plots of $z_t$, we see that the mean appears to be stationary but there is evidence of seasonality. The ACF shows spikes at lag 6 and the PACF shows also spikes at lag 7, that decay to 0. This is evidence of weekly seasonality; therefore, we take a seasonal difference of 7 and then analyse $z_t-z_{t-7}$. This plot shows a spike in the ACF at lag 7 only and decaying spikes in the PACF at 7, this indicates that we have somewhat dealt with the seasonality by differencing. There is no evidence of a trend so $d = D = 0$. The seasonally differenced ACF plot also indicates a $MA(1)_7$ trend and the PACF has a positive spike at lag 1 and the ACF has a spike at 1 which signals an ARMA(1, 1) in the non-seasonal part of the model. Therefore we start by fitting the following model: $\text{SARIMA}(1,0,1)(0,0,1)_7$ model. Models are iteratively fit adding orders based on the ACF and PACF plots those plots show stationarity. We finally end up with a $\text{SARIMA}(2,0,1)(1,0,1)_7$ model after some other excluded intermediate steps.  The estimation is done with an CSS-ML method.
+From @fig-tsdisp-zt, I observed that the trend of the time series appeared to be stationary but there was evidence of signficant seasonality. The ACF plot showed spikes at lag 6 and the PACF plot had spikes at lag 7 that decayed to 0. This was evidence of weekly seasonality; therefore, we took a seasonal difference of 7 and then analysed $z_t-z_{t-7}$. This plot (@fig-tsdisp-zd) showed a spike in the ACF at lag 7 only and decaying spikes in the PACF at 7, this indicated that we had somewhat mitagated the seasonality by differencing. There was no evidence of a trend so $d = D = 0$. The seasonally differenced ACF plot also indicated a $MA(1)_7$ trend and the PACF had a positive spike at lag 1 and the ACF had a spike at 1 which signaled an $\text{ARMA}(1, 1)$ dependence in the non-seasonal part of the model. Therefore I fitted the following model: $\text{SARIMA}(1,0,1)(0,0,1)_7$. Models were iteratively fit adding orders based on the ACF and PACF plots until stationarity was reached. I finally ended up with a $\text{SARIMA}(2,0,1)(1,0,1)_7$ model after some other excluded intermediate steps which can be optionally observed in @fig-tsdisp-s1. The estimation was done with an CSS-ML method and the AIC of each iterated model in @tbl-sarima-aic agreed that the final model had the best fit.
 
 ```{r}
 #| code-fold: true
@@ -805,12 +802,12 @@ gt(aic.sarima, rowname_col = "row") |>
   
 ```
 
-Let’s now fit and estimate this model, note we will use a mean as there is no time trend part.
+After finding the order of the SARIMA model, the model was fit to the training data.
 
 
 ```{r}
 #| label: tbl-sarima-est
-#| tbl-cap: "Estimates for the $\\text{SARIMA}(2,0,1)(1,0,1)_7$ model"
+#| tbl-cap: "Estimates for the $\\text{SARIMA}(2,0,1)(1,0,1)_7$ model fit to training data"
 
 # Table for the samrima
 # pvalues using a z-test
@@ -831,16 +828,16 @@ z_t &= 1.0719 z_{t-1}-0.1356 z_{t-2}+0.9999 z_{t-7}-1.0717 z_{t-8} \\
 \end{aligned}
 $${#eq-M5}
 
-All coefficients are significant to at least a 95% confidence level, see appendix for full model output. Interpreting this model, we find that the current value of $z_t$ is positively correlated with the past value and has a much smaller negative correlation with lag 2. Large values of crashes from the previous week have a positive correlation with the current number of ACT road rashes, which signals strong weekly seasonality. The baseline average for $z_t$ is $3.5252$. Any past innovations to the model (i.e. $\epsilon$) at lag 1, smooth out the current forecast and an innovation from the past week increases the current estimate, but the following day this is again smoothed out by the lag 8 shock. So, these lagged innovations tend to smooth out the predictions of $z_t$.
+All coefficients were significant to at least a 95% confidence level. Interpreting this model, we found that the current value of $z_t$ is positively correlated with the past value and had a much smaller negative correlation with lag 2. Large values of crashes from the previous week had a positive correlation with the current number of ACT road rashes, which signals strong weekly seasonality. The baseline average for $z_t$ is $3.5252$. Any past innovations to the model (i.e. $\epsilon$) at lag 1 smoothed out the current forecast. An innovation from the past week increased the current estimate but, the following day this is again smoothed out by the lag 8 shock. Therefore, these lagged innovations tend to smooth out the predictions of $z_t$.
 
 
 ## Seasonal Auto ARIMA Model of $z_t$
 
-Whilst the SARIMA process above found a reasonable model, there may be a better choice using an `auto.arima` procedure. Therefore, lets run `auto.arima` on the non-stabilised $z_t$ to see how it performs. Because of apparent strong weekly seasonality, we will let the `auto.arima` find a model with weekly seasonality. The max $p$ and $q$ and order will be set to 7 and seasonality will be set to true. This selects a SARIMA model of order $(1,0,0) (2,0,0)_7$, and it is estimated as:
+Whilst the SARIMA process above found a reasonable model, there may be a better choice using an `auto.arima` procedure. The `auto.arima` procedure searches many orders automatically to find the optimal order however, in practice this can lead to overfitting. Because of apparent strong weekly seasonality, we fixed the seasonality to be weekly instead of allowing the procedure to select the seasonality. The max $p$ and $q$ values were set to 7. Ultimately, this procedure selected a SARIMA model of order $(1,0,0) (2,0,0)_7$, and the model was estimated as:
 
 ```{r}
 #| label: tbl-auto-model
-#| tbl-cap: "Estimate for Seasonal Auto ARIMA Model"
+#| tbl-cap: "Estimate for Seasonal Auto ARIMA Model using training data"
 
 # Fit a SARIMA model
 a.sarima <- auto.arima(ts(crash.train$z, frequency = 7), max.p = 7, max.q = 7, max.order = 7,
@@ -863,7 +860,7 @@ $$
 z_t=0.2947z_{t-1}+0.2925z_{t-7}+0.2584z_{t-14}+3.5296+ \epsilon_t
 $$ {#eq-M6}
 
-This is an odd choice by the `auto.arima` function as the residuals of this model (available in the appendix) show evidence of serial autocorrelation. All coefficients are marginally significant to at least a 95% confidence level. This model simply says that the square root of the number of ACT road crashes has a baseline of $3.5396$ and nearly equally related to the past values at lags 1, 7 and 8. Perhaps this simpler model will result in test predictions than the more flexible previously fit SARIMA model.
+This was an odd choice by the `auto.arima` function as the residuals of this model (@fig-tsdisp-aa) showed evidence of serial autocorrelation. All coefficients were marginally significant to at least a 95% confidence level. This model estimates that the square root of the number of ACT road crashes were nearly equally related to the past values at lags 1, 7 and 8. It is possible that this simpler model could result in better generalisation however, the poor diagnostics suggest that it may struggle.
 
 ::: callout-note
 ## Time Series Display for Seasonal Auto ARIMA Model Building Process (optional)
@@ -902,7 +899,7 @@ pacf(residuals(a.sarima), main = "")
 
 # Model Diagnostics {#sec-res}
 
-Perform residual diagnostics to determine if the model from part 3 were adequately fit. Whilst I will consider outliers, no attempt will be made to assess high influence observations as cook’s distance is not valid with dependent error structures.
+For each model fit in @sec-model residual diagnostics plots were generated to determine if any modelling assumptions were violated. Whilst I considered outliers, no attempt was made to assess highly influential observations as cook’s distance is not valid with dependent error structures.
 
 ## Time Trend with ARMA(0, 1) Residuals (SEACF)
 
@@ -975,7 +972,7 @@ tt01.outlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 :::
 
 
-Examining the model diagnostics, we find the residuals do appear scattered around 0 with somewhat consistent variance around 0, which meets the linearity of errors and homoscedasticity assumptions. There does not appear to be any omitted variable bias. Furthermore, the variance assumption is met decently until the top part of the distribution which is a little heavy tailed. Given the amount of data though we shouldn't be too concerned as the CLT will help ensure that a slight variation of this isn't too problematic. Finally, the Ljung-Box test passes as no p-values cross the 0.05 threshold, signalling that there is no evidence of dependence of observations. This model has 7 outliers with absolute standardized residual greater than 3, this is on par given the number of observations we have. The outliers (@tbl-out-tt01) tend to be either school holidays or days in the middle of the week. Overall, we cannot remove these residuals but maybe there is some difference in traffic on  certain school holidays that could be better accounted for.  Overall, there is no evidence to suggest that this model egregiously violates the model diagnostics.
+Examining the model diagnostics in @fig-res-arma01, we found the residuals were scattered around 0 with somewhat consistent variance. Therefore the linearity of errors and homoscedasticity assumptions were not violated. There did not appear to be any omitted variable bias. Furthermore, the variance assumption was met decently until the upper part of the distribution which was a little heavy tailed. Given the amount of data though I was not too concerned as the CLT will help ensure that a slight deviation from normally distributed errors is not an issue. Finally, the Ljung-Box test passed as no p-values cross the 0.05 threshold, signalling that there is no evidence of dependence of observations. This model had 7 outliers with absolute standardized residual greater than 3, which given the number of observations is the approximately the expected number of outliers. However, the outliers (@tbl-out-tt01) tended to be either school holidays or days in the middle of the week signally that there was still some pattern in the DGP that our model was not able to account for. As we were working with time series data outliers cannot be removed however, is was still worth exploring as it has provided some insight into inadequecies in the model.  Overall, there was no evidence to suggest that this model egregiously violated modelling assumptions.
 
 ## Time Trend with ARMA(1, 0) Residuals (AIC)
 
@@ -1008,7 +1005,7 @@ tt10.outlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 :::
 
 
-The constant variance and linearity of residuals assumptions are met for this model. There does not appear to be any omitted variable bias. Similarly to the previous model, the residuals are mostly normal with a slightly heavy right tail. This makes the trend in the residuals sense given that that $z_t$ is slightly right skewed. Again the Ljung-Box test passes, so there is no evidence of serial autocorrelation of the errors of the model. There are, similarly to the past time-trend ARMA(0, 1) model 7 outliers, which occur Tuesday-Friday or on a school holiday (see @tbl-out-tt10). Therefore, the residuals of this model are stationary and overall, the assumptions of the model do not appear to be violated. 
+The constant variance and linearity of residuals assumptions were met for this model. There did not appear to be any omitted variable bias. Similarly to the previous model, the residuals were mostly normal with a slightly heavy right tail. This is likely expected given that $z_t$ was slightly right skewed. Again the Ljung-Box test passed, so there was no evidence of serial autocorrelation of the errors of the model. There were again 7 outliers, which occured on Tuesday-Friday or on a school holiday (see @tbl-out-tt10). Therefore, the residuals of this model are stationary and overall, the assumptions of the model did not appear to be violated. 
 
 ## Seasonal ARIMA Model of $z_t$ $\text{SARIMA}(2,0,1) (1,0,1)_7$
 
@@ -1042,7 +1039,7 @@ tsar.outlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 </details>
 :::
 
-No issue with the constant variance assumption or linearity assumption. There does not appear to be any omitted variable bias. The QQ-plot shows slightly heavy bottom tail, but overall the residuals are normal. The Box-Ljung test finds no evidence of serial dependence of errors, so there is no evidence that the dependence of errors assumption is violated. Note, whilst we cannot remove outliers there are 9 outliers with a absolute standardized residual greater than 3 (@tbl-out-tsar). All but one of these outliers occur on a public holiday, most occur during a midweek public holiday. The non-public holiday outlier occurs on Wednesday 2017-04-26, on this date there were school and public holidays on Monday and Tuesday and Wednesday would have been the first day back at school. This likely caused a higher-than-expected number of road accidents as the day following a weekend tends to have the highest accident rate. However, given that it looks like a one off, and you cannot remove time series outliers, I will not attempt to control for this point. This indicates that the SARIMA model is failing to accurately predict the surge in crashes on a public holiday, which the time-trend models are capable of predicting. This highlights one of the downsides of the SARIMA approach, we cannot account for these intermittent events. Overall, none of the model assumptions are violated other than perhaps a slight violation of omitted variable bias. Seasonal Auto ARIMA Model of $z_t$ $\text{SARIMA}(1,0,0) (2,0,0)_7$.
+No issue was found with the constant variance assumption or linearity assumption. There did not appear to be any omitted variable bias. The QQ-plot showed a slightly heavy bottom tail, but overall the residuals were normal. The Box-Ljung test found no evidence of serial dependence of errors, so there was no evidence that the dependence of errors assumption was violated. Note, there are 9 outliers with a absolute standardized residual greater than 3 (@tbl-out-tsar). All but one of these outliers occured on a public holiday, most occur during a midweek public holiday. A non-public holiday outlier occured on Wednesday 2017-04-26, which was a wednesday following two public holidays on Monda and Tuesday. This likely caused a higher-than-expected number of road accidents as the day following a weekend tended to have the highest accident rate. This indicated that the SARIMA model was failing to accurately predict the surge in crashes on a public holiday, which the time-trend models were capable of predicting. This highlights one of the downsides of the SARIMA approach, it cannot account for these intermittent events. Overall, none of the model assumptions were violated other than perhaps a slight violation of omitted variable bias.
 
 ## Auto SARIMA model $\text{SARIMA}(1,0,0)(2,0,0)_7$
 
@@ -1074,7 +1071,7 @@ asar.outlier <- crash.train[abs(res.stand) > 3]$DATE # Time of the outlier
 :::
 
 
-Again, no issues with the constant variance assumption or linearity of assumption, however the residuals do not appear to be random scatter and hint at some pattern. The residuals look very normal, some tiny amount of light tails at the bottom of the distribution but overall the residuals are sufficiently normal. However, this fails the Box-Ljung test, indicating serial autocorrelation. The ACF plot shows persistent autocorrelation with lags 5, 10, 15 and so on, which does not decay to 0. Therefore, the auto.arima function selected a model that does not adequately meet the independence of observations assumption. This is a warning that auto.arima on its own is not sufficient to fit models. In addition, there are 5 outliers (@tbl-out-asar) (absolute standardized residual greater than 3) which include the date 2017-04-26 (discussed previously) and 4 public holidays that occur on a Friday. Again, indicating that the SARIMA model fails to adequately fit some of the public holidays. 
+Again, no issues were found with the constant variance assumption or linearity assumption. However the residuals did not appear to be random scatter and hinted at some pattern. The residuals looked overal mostly normal in the QQ-plot. However, this model failed the Box-Ljung test, indicating serial autocorrelation. The ACF plot showed persistent autocorrelation with lags 5, 10, 15 and so on, which did not decay to 0. Therefore, the `auto.arima` function selected a model that does not adequately meet the independence of observations assumption. This is a warning that `auto.arima` on it's own may not sufficiently find a suitable model order. In addition, there were 5 outliers (@tbl-out-asar) (absolute standardized residual greater than 3) which again included the date 2017-04-26 in addition to 4 public holidays that occured on a Friday. Again, indicating that the SARIMA model failed to adequately fit some of the public holidays. 
 
 # Data Prediction for Training Test Split {#sec-tt}
 
