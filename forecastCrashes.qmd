@@ -1075,13 +1075,13 @@ Again, no issues were found with the constant variance assumption or linearity a
 
 # Data Prediction for Training Test Split {#sec-tt}
 
-To assess the accuracy of the fitted models, use the $MSEP^{(T')}$, which is the Mean Square Error of Prediction (MSEP) for the truncated one-step-ahead forecast for time $T+1,T+2, \ldots, T'-1, T'$. The $MSEP^{(T' )}$ is calcuated as:
+To assess the accuracy of the fitted models $MSEP^{(T')}$ was estimated. This is the Mean Square Error of Prediction (MSEP) for the truncated one-step-ahead forecast for time $T+1,T+2, \ldots, T'-1, T'$. The $MSEP^{(T' )}$ was calcuated as:
 
 $$
 MSEP^{(T')}=  \frac{1}{T'} \sum_{j = 1}^{T'} (y_{T + j}  - \widehat{y_{T+j|T}})
 $$
 
-In addition to the four models fitted and diagnosed, I will also include a Naive estimate. This is just the last value from the training time series at time $T$, $y_T.$ Ideally, a good model would have a smaller prediction than this naive baseline. 
+In addition to the four models fitted and diagnosed, I also included a Naive estimate. This was just the last value from the training time series at time $T$. Ideally, a good model would have a smaller prediction than this naive baseline. 
 
 ```{r}
 ##
@@ -1145,7 +1145,7 @@ gt(msep_results, rowname_col = "row"
   )
 ```
  
-In terms of $MSEP^{(T')}$, the most accurate model is the Time-Trend ARMA(1,0) model (fit using AIC method) that marginally beats out the other Time-Trend. In truth, the accuracy between the two time trend models is nearly indistinguishable, which makes sense as the ARMA errors are only different for the first few time points then decay quickly to the mean. Notably, the Time-Trend model performs more than twice as good compared to a Naïve predictor.
+Per the $MSEP^{(T')}$ statistics, the most accurate model was the Time-Trend $\text{ARMA}(1,0)$ model (fit using AIC method). In truth, the difference in prediction accuracy between the two time trend models was nearly indistinguishable, which made sense as the ARMA errors were only different for the first few time points then decay quickly to the mean. Notably, the Time-Trend model performed more than twice as well as the Naïve predictor.
 
 ```{r}
 #| label: fig-pred
@@ -1208,7 +1208,8 @@ fig <- plot_ly(
 fig
 
 ```
-*Clicking on the model in the legend will filter the display for easier viewing.*
+
+*Clicking on the model in the legend will filter the models and dragging on the plot will filter the time period for easier comparison.*
 
 ```{r}
 #| label: fig-pred-4weeks
@@ -1273,25 +1274,21 @@ fig <- plot_ly(
   )  
 fig
 ```
-*Clicking on the model in the legend will filter the display for easier viewing.*
+*Clicking on the model in the legend will filter the models and dragging on the plot filter the time series for easier comparison.*
 
-The required time series graph is a little difficult to interpret given the large number of data points so, an additional graph only looking at the first 28 days was included. The graph shows that neither of the time-trend models (aka SEACF or AIC) have an indistinguishable fit. The AIC and SEACF time-trend models appear to most accurately follow the peaks and troughs of the actual trend however, the SARIMA model also appears to do a decent job. The Auto Sarima model is too smoothed and appears to underfit the peaks and troughs of the data. This is the same conclusion as the $MSEP^{(T')}$ which makes sense as the accuracy measure is the mean squared distance to the true point. $MSEP^{(T')}$ can be inaccurate however when there are lots of large outliers, so the $MSEP^{(T')}$. In our case however, we didn’t see more than 10 outliers for either trend, so it is understandable that $MSEP^{(T')}$ matches the findings of the graph.
+@fig-pred is tricky to interpret given  the long time period, therefore an additional graph only looking at the first 28 days was included (#fig-pred-4weeks). The graph showed that both time-trend models performed almost identically. The time-trend models appeared to accurately follow the peaks and troughs of the actual trend however, the SARIMA model also appeared to do a decent job. The Auto Sarima model was too smoothed and appeared to underfit the peaks and troughs of the data. 
 
-As discussed in the model fitting section there are patterns in the data that the SARIMA models can't pick up. For example, the public holidays are more difficult for the SARIMA model to fit due to changes in calendar and annual changes in public holiday days. In addition, the seasonality being modelled as factors likely provides greater flexibility to the time-trend model, which have19 parameters compared to the largest SARIMA model which has only 9 parameters. Given the large amount of training data this flexibility has likely allowed the bias of the model to be reduced significantly. The performance of the SARIMA models however is impressive given the lack of additional information about public and school holidays. In addition,  the SARIMA model only has the weekly seasonality, it doesn't consider the monthly seasonality the time-trend models do.
-
-Comparing the models, the auto SARIMA had the worst regression diagnostics and by far had the worst accuracy. This is likely as there was something in our model that the diagnostics is telling us it is missing. However, for the models that passed the diagnostics there is no indication which of these three models would fit better. Therefore, the diagnostics were useful in indicating that the model that failed the diagnostics was a poor predictor but, it was not useful in distinguishing the predictive ability of those that passed.
-
-
+As discussed in the model fitting section there were patterns in the data that the SARIMA models couldn't pick up. For example, the public holidays were more difficult for the SARIMA model to fit due to changes in calendar and annual changes in public holiday days. In addition, the seasonality being modelled as factors likely provided greater flexibility to the time-trend model, which had $19$ total parameters compared to the largest SARIMA model which had only $9$. Given the large amount of training data this flexibility has likely allowed the bias of the model to be reduced significantly. The performance of the SARIMA models however is impressive given the lack of additional information about public holidays, school holidays and year of the month. 
 
 # Rolling Window Prediction {#sec-roll}
 
-The rolling window procedure estimates the one-step-ahead forecast for each point in the test dataset using the orders and parameters selected from the test dataset. Accuracy will then be measure as 
+The rolling window procedure estimated the one-step-ahead forecast for each point in the test dataset using the orders and parameters selected from the test dataset. Accuracy was then  measured as:
 
 $$
 MSEP_1= \frac{1}{T'} \sum_{t = T}^{T+T'-1} (y_{t + 1}- \widehat{y_{t+1|S_t}}) 
 $$ {#eq-msep-roll}
 
-However, the coefficient estimates in the linear regression, ARMA, and SARIMA models are computed using the window of observations proceeding the observation being predicting (including test data that proceeds the time being predicted). A slight alteration was made to my window sizes as the time-trend models need approximately 365 days of data to fit the monthly seasonality. As a result, I will use floor or $0.37$, $b_{0.37} = 337$ and floor of $0.74$, $b_{0.64} = 674$. This gives us two more evenly spaced samples for comparison and enough data for the model to be fit. The Naive estimator for the rolling window predictor is previous observations, this is used for comparison purposes.
+However, the coefficient estimates in the linear regression, ARMA, and SARIMA models were computed using only window of observations proceeding the observation being predicting (including test data that proceeds the time being predicted). Note that the order of the models was not recomputed, these remain fixed from those orders estimated in the train/test split section. Two different window sizes were used to determine whether the window size impacts the performance of the model. The time-trend model required nearly 365 days of data in order to fit the monthly seasonality. As a result, I used floor or $0.37$ per cent of the training data, $b_{0.37} = 337$ and $0.74$, $b_{0.74} = 674$. The Naive estimator for the rolling window predictor was previous observation.
 
 ```{r}
 # TODO a visualisation here of the rolling window prediction
@@ -1447,11 +1444,11 @@ gt(roll_results, rowname_col = "row") |>
 
 ```
 
-*&#42 The only was to get the SARIMA model to execute was the change the order from SARIMA(2,0,1) (1,0,1)_7 to SARIMA(2,0,1) (0,0,1)_7 as the more complex SARIMA model has non-finite finite-difference value and would not converge to a solution regardless of method used to fit it. The simpler model was fit for comparison purposes however, in some sense the fit was also null as the model failed to converge. Both options will be discussed.*
+\* The only way to get the SARIMA model to execute was to change the order from $\text{SARIMA}(2,0,1) (1,0,1)_7$ to $\text{SARIMA}(2,0,1)(0,0,1)_7$ as the more complex SARIMA model had non-finite finite-difference value and would not converge to a solution regardless of method used to fit it. The simpler model was fit for comparison purposes however, in some sense the fit was also null as the model failed to converge. Both options will be discussed.
 
-The $MSPE_1$ table above shows that the Time-Trend models once again perform by far the best. The difference in performance between the time-trend models again is nearly negligible, which likely indicates that either choice is appropriate, and any difference is down to chance. This time, the auto SARIMA model outperformed the SARIMA model (which also failed to converge with the original order and was altered so it would). It appears that the reduction in training data made the more complex SARIMA model unable to fit and less efficient when it was. 
+@tbl-rolling above showed that the Time-Trend models once again performed by far the best. The difference in performance between each time-trend model again was negligible, which likely indicates that either choice is appropriate. This time, the auto SARIMA model outperformed the SARIMA model (which also failed to converge with the original order and was altered so it would). It appears that the reduction in training data made the more complex SARIMA model unable to be fit and less effictive when it was. 
 
-The larger training windows i.e. $b_{0.64}$, performs better than the smaller window across the board. This makes sense, the smaller the training window the more bias and variance in the prediction, hence the worse the prediction is. The rankings of the models do change for the windowed rolling accuracy measures. The ARMA(0, 1) time trend model is the best for the $b_{0.64}$ window but second best for the $b_{0.37}$. For $MSEP^{(T')}$, the Time-Trend ARMA(1, 0) is marginally more accurate. The reason for this change is essentially the two predictions are the same, this is because most of the variation in the model is predicted by the time-trend portion so the difference in the ARMA(1, 0) or ARMA(0, 1) portion of the model appears to be negligible. Any difference in accuracy between the time-trend models is likely down to chance. In the $MSEP^{(T')}$, the Auto SARIMA model was the worst performer, however, is the second worst by $MSPE_1$ and the SARIMA model appears to be the worst. This is because, it appears that the simpler order of the Auto SARIMA model is better when there is less data to estimate the parameters. In addition, the Auto SARIMA model only needs to predict one step ahead. The m-step truncated prediction, misspecification may add up over time, again potentially favouring a more parsimonious model.
+The larger training windows i.e. $b_{0.74}$, performs better than the smaller window across the board. This makes sense, the smaller the training window the more bias and variance in the prediction, hence the worse the prediction is. The rankings of the models do change for the windowed rolling accuracy measures. The ARMA(0, 1) time trend model is the best for the $b_{0.64}$ window but second best for the $b_{0.37}$. For $MSEP^{(T')}$, the Time-Trend ARMA(1, 0) is marginally more accurate. The reason for this change is essentially the two predictions are the same, this is because most of the variation in the model is predicted by the time-trend portion so the difference in the ARMA(1, 0) or ARMA(0, 1) portion of the model appears to be negligible. Any difference in accuracy between the time-trend models is likely down to chance. In the $MSEP^{(T')}$, the Auto SARIMA model was the worst performer, however, is the second worst by $MSPE_1$ and the SARIMA model appears to be the worst. This is because, it appears that the simpler order of the Auto SARIMA model is better when there is less data to estimate the parameters. In addition, the Auto SARIMA model only needs to predict one step ahead. The m-step truncated prediction, misspecification may add up over time, again potentially favouring a more parsimonious model.
 
 The conclusions from the diagnostic in section 4 do not support the conclusions here. With less training data the SARIMA model failed to converge on a solution even though it passed regression diagnostic. In addition, the Auto SARIMA model performed reasonably, on par with the performance of the SARIMA model in section 5. For the SARIMA models $MSPE_1$ was better for with more parsimonious models. The time-trend models appear to have performed well again, likely because they are much more capable of capturing the true underlying data generating process. Once last interesting finding is that going from 337 window size to 674 only increase the $MSPE_1$ of Auto SARIMA by ~1.5 whilst the $MSPE_1$ of the Time-Trend models went up by nearly 4. This supports the idea that lower SARIMA models are reasonable, but the performance improvement is more marginal with more data.
 
